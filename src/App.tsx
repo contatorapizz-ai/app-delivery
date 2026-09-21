@@ -10,8 +10,12 @@ import NotFoundPage from './pages/NotFoundPage'
 import { CartProvider } from './context/CartContext'
 import { OrdersProvider } from './context/OrdersContext'
 import { AuthProvider } from './context/AuthContext'
+import { isSupabaseConfigured } from './lib/supabase'
+import ConfigMissingScreen from './components/ConfigMissingScreen'
 
 export default function App() {
+  if (!isSupabaseConfigured) return <ConfigMissingScreen />
+
   return (
     <AuthProvider>
       <CartProvider>
