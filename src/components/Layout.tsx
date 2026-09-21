@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import Logo from './Logo'
+import { AccountNavItemDesktop, AccountNavItemMobile } from './AccountNavItem'
 
 const mobileNavLinkClass = ({ isActive }: { isActive: boolean }) =>
   `flex flex-col items-center gap-0.5 px-3 py-1.5 text-xs font-medium ${
@@ -58,6 +59,9 @@ export default function Layout() {
             >
               📣 Anunciar
             </NavLink>
+            <div className="ml-2 border-l border-neutral-200 pl-2">
+              <AccountNavItemDesktop />
+            </div>
           </nav>
 
           <NavLink
@@ -93,6 +97,7 @@ export default function Layout() {
             <span className="text-xl leading-none">📦</span>
             Pedidos
           </NavLink>
+          <AccountNavItemMobile />
         </div>
       </nav>
     </div>
