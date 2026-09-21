@@ -29,7 +29,10 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest}'],
-        navigateFallback: '/offline.html',
+        // Serve o shell do app para qualquer rota do React Router (inclusive offline,
+        // já que index.html fica pré-cacheado) — offline.html só é usado como
+        // fallback de navegador quando nem o shell está disponível (ver public/offline.html).
+        navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
           {

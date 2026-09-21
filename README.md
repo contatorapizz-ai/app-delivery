@@ -1,46 +1,50 @@
-# Rapizz — App de Delivery (PWA)
+# Rapizz — App de Delivery + Rapizz Ads (PWA)
 
-Reconstrução do aplicativo de delivery Rapizz como **aplicativo web/PWA responsivo**, conforme o Contrato de Prestação de Serviços firmado entre GABRIELLA MAXIMINO PASSOS (CONTRATADA) e WELLINGTON VINÍCIUS CONCEIÇÃO SANTANA (CONTRATANTE) em 12/09/2026.
+Reconstrução do aplicativo de delivery Rapizz como **aplicativo web/PWA responsivo**, conforme o Contrato de Prestação de Serviços firmado entre GABRIELLA MAXIMINO PASSOS (CONTRATADA) e WELLINGTON VINÍCIUS CONCEIÇÃO SANTANA (CONTRATANTE) em 12/09/2026, **mais a Fase 1 da visão de expansão (Rapizz Ads + Fundo Motoboy)**, que o cliente decidiu incluir no valor já pago em vez de orçar separadamente.
 
 ## Escopo contratado (Cláusula 1ª)
-
-O que este projeto entrega:
 
 - Interface principal do Rapizz (home, busca, categorias)
 - Apresentação de lojas, cardápio e categorias de produtos
 - Fluxo de seleção de itens e realização de pedidos (carrinho)
 - Área de acompanhamento/organização dos pedidos
 - Botão de finalização/contato (envio do pedido para a loja via WhatsApp)
-- Ajustes visuais e técnicos de UX
 - Configuração em formato PWA (instalável, com página de fallback offline)
-- Testes básicos de funcionamento e responsividade
 
-O que **não** está incluso (Parágrafo Segundo da Cláusula 1ª) e deve ser orçado à parte:
+Segue **fora** de qualquer escopo (não incluso mesmo com a expansão): aplicativo nativo (App Store/Google Play), gateway de pagamento real (cartão/Pix processado por um provedor), automações avançadas. A finalização do pedido continua abrindo uma conversa no WhatsApp da loja (`wa.me`) para combinar pagamento e entrega.
 
-- Aplicativo nativo (App Store / Google Play)
-- Gateway de pagamento / sistema financeiro
-- Integrações complexas ou automações avançadas
-- Qualquer funcionalidade não combinada expressamente (ex.: Rapizz Ads, Fundo Motoboy, segmentação avançada, Rapizz Shopping, etc. — apresentadas pelo cliente como visão futura do produto)
+## Rapizz Ads + Fundo Motoboy — Fase 1 (novo)
 
-Como não há gateway de pagamento no escopo, a finalização do pedido monta um resumo do carrinho e abre uma conversa no WhatsApp da loja (`wa.me`) para o cliente combinar pagamento e entrega — o modelo de "botão de contato/finalização" previsto no item V da Cláusula 1ª.
+A partir do documento de visão enviado pelo cliente ("Rapizz Ads + Fundo Motoboy + Segmentação Inteligente"), foi implementada a primeira fase, com backend real (Supabase):
+
+- **Cadastro de lojista** (`/anunciar`): login/cadastro por e-mail e senha, criação da própria loja.
+- **Criação de campanhas**: objetivo, formato, orçamento, período. Formatos com exibição real no app do cliente nesta fase: **Story Premium**, **Banner Destaque** e **Produto Patrocinado** (os demais formatos do documento ficam registrados no sistema, mas sem superfície visual ainda — marcados como "em breve" no formulário).
+- **Ativação de campanha**: como não há gateway de pagamento integrado, a ativação é uma simulação explícita ("Simular pagamento e ativar") — o texto do botão deixa isso claro para quem estiver testando. É o ponto exato onde uma integração de pagamento real entraria no futuro.
+- **Fundo Motoboy**: toda campanha ativada registra automaticamente um lançamento no `fund_ledger` com split 50% plataforma / 50% fundo, calculado a partir do orçamento da campanha (`activate_campaign`, função no banco).
+- **Dashboard do lojista**: impressões, cliques e CTR por campanha.
+- **Painel administrativo** (`/admin`, acesso restrito a `role = 'admin'`): totais agregados (Total Ads Arrecadado, Total Plataforma, Total Fundo Motoboy, campanhas ativas).
+
+**Limitação conhecida:** a distribuição individual por motoboy não foi implementada — não existe ainda cadastro/rastreamento de entregadores no app. O fundo é calculado e registrado de forma agregada; a distribuição por entrega fica para uma próxima fase, quando houver um módulo de motoboys.
+
+**Promover um usuário a administrador** (não há UI para isso, por segurança): no SQL Editor do Supabase, `update profiles set role='admin' where id='<uuid do usuário>';`.
 
 ## Stack
 
 - React + TypeScript + Vite
 - Tailwind CSS v4
 - React Router
+- **Supabase** (Postgres + Auth + RLS) — lojas, produtos, pedidos, perfis, carteiras, campanhas de anúncio e ledger do fundo
 - `vite-plugin-pwa` (service worker, manifest, ícones, fallback offline)
-- Dados de lojas/cardápio mockados em `src/data` (não há backend — combinado com o escopo contratado)
-- Carrinho e pedidos persistidos em `localStorage` (sem servidor, sem dados financeiros)
 
 ## Rodando localmente
 
 ```bash
 npm install
-npm run dev       # ambiente de desenvolvimento
-npm run build     # build de produção em dist/
-npm run preview   # servir o build de produção localmente
-npm run lint      # lint (oxlint)
+cp .env.example .env   # preencha com a URL e a publishable key do seu projeto Supabase
+npm run dev             # ambiente de desenvolvimento
+npm run build            # build de produção em dist/
+npm run preview          # servir o build de produção localmente
+npm run lint              # lint (oxlint)
 ```
 
 ## Ícones e marca
@@ -59,24 +63,22 @@ Paleta oficial extraída da arte:
 | Azul-marinho | `#191f6b` |
 | Laranja | `#fe9015` |
 
-Esses tokens estão em `src/index.css` (`--color-brand`, `--color-navy`, `--color-accent`). Para atualizar a logo no futuro, substitua os arquivos em `src/brand/` e rode:
-
-```bash
-node scripts/generate-icons.mjs
-```
+Esses tokens estão em `src/index.css` (`--color-brand`, `--color-navy`, `--color-accent`). Para atualizar a logo no futuro, substitua os arquivos em `src/brand/` e rode `node scripts/generate-icons.mjs`.
 
 ## Modo offline
 
-Ao perder conexão, o app instalado como PWA continua funcionando com o conteúdo já carregado (cache do app shell). Quando uma navegação não pode ser resolvida (sem internet e sem cache), é exibida a página `public/offline.html` com a mensagem "Pedimos desculpas, mas estamos temporariamente fora do ar".
+O app shell (HTML/CSS/JS) fica pré-cacheado pelo service worker e continua funcionando normalmente offline após a primeira visita — inclusive navegação direta para qualquer rota (`/loja/:id`, `/carrinho`, `/anunciar` etc.), já que o fallback de navegação aponta para o próprio app. A página `public/offline.html` (com a mensagem "Pedimos desculpas, mas estamos temporariamente fora do ar" e a nuvem triste) fica disponível como recurso pré-cacheado para cenários de fallback do navegador. Chamadas ao Supabase (lojas, campanhas etc.) que falharem por falta de conexão mostram um estado de erro dentro da própria tela, sem travar o app.
 
 ## Segurança
 
-- Nenhum segredo, chave de API ou credencial está presente no código-fonte — o app é 100% front-end estático, sem backend nesta etapa do contrato.
-- `Content-Security-Policy`, `X-Content-Type-Options` e `Referrer-Policy` configurados em `index.html`.
-- Entradas de texto do cliente (nome, telefone, endereço, observações) têm `maxLength` e são enviadas ao WhatsApp via `encodeURIComponent`, sem `dangerouslySetInnerHTML` ou `eval` em nenhum ponto do app.
-- `.gitignore` cobre `node_modules`, `dist`, arquivos `.env*` e artefatos de editor, para evitar commit acidental de segredos caso integrações futuras (ex.: gateway de pagamento) sejam contratadas.
-- Dados de exemplo (`src/data/stores.ts`) usam números e endereços fictícios — nenhum dado pessoal do contrato (CPF, telefone, e-mail, endereço das partes) foi incluído no código.
+- Nenhum segredo, chave privada/`service_role` ou credencial de infraestrutura está no código-fonte. A chave usada no front-end é a **publishable/anon key**, que é pública por design e protegida por Row Level Security (RLS) — nunca a `service_role key`.
+- `.env` está no `.gitignore`; `.env.example` documenta as variáveis sem valores reais.
+- RLS habilitado em todas as tabelas, com policies específicas por papel (cliente, lojista, admin). Lançamentos no `fund_ledger` só acontecem através da função `activate_campaign` (que valida posse da loja internamente) — não existe policy de `INSERT` direta nessa tabela.
+- Funções `SECURITY DEFINER` foram revisadas com o advisor de segurança do Supabase: a função de trigger (`handle_new_user`) teve `EXECUTE` revogado de `PUBLIC`/`anon`/`authenticated` (só roda via trigger); `activate_campaign` só é executável por usuários autenticados.
+- `Content-Security-Policy`, `X-Content-Type-Options` e `Referrer-Policy` configurados em `index.html`; `connect-src` da CSP é preenchido em build-time com a URL do próprio projeto Supabase (`%VITE_SUPABASE_URL%`), sem abrir para qualquer domínio.
+- Entradas de texto do cliente têm `maxLength` e nenhum ponto do app usa `dangerouslySetInnerHTML` ou `eval`.
+- Dados de exemplo (lojas seed) usam números e endereços fictícios — nenhum dado pessoal do contrato (CPF, telefone, e-mail, endereço das partes) foi incluído no código ou no banco.
 
-## Próximos passos (fora deste escopo, a orçar separadamente)
+## Próximos passos (fora desta fase, a avaliar conforme o cliente evoluir)
 
-Conforme relatado pelo cliente: sistema de publicidade interna (Rapizz Ads), Fundo Motoboy/Fundo Lojista, segmentação avançada, dashboard administrativo, gateway de pagamento, app nativo, acessibilidade avançada (pedido por voz, Libras, leitor de tela), verificação fotográfica de endereço com IA. Cada uma dessas frentes deve ser combinada e orçada separadamente, conforme Cláusula 11ª do contrato.
+Conforme o documento de visão: demais formatos de anúncio (Loja Patrocinada, Promoção Relâmpago, Categoria/Marca Patrocinada etc.), segmentação avançada de fato aplicada na distribuição, Rapizz Corporate, Rapizz Premium (assinatura sem anúncios), módulo de motoboys com distribuição individual do fundo, acessibilidade avançada (pedido por voz, Libras, leitor de tela), cadastro de endereço com foto de fachada, notificações operacionais, logística própria para categorias especiais, inteligência de dados/tendências, e gateway de pagamento real. Cada uma dessas frentes é maior que o que cabe em uma única fase e deve ser priorizada com o cliente.

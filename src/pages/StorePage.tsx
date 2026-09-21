@@ -1,19 +1,36 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
-import { getProductsByStore, getStoreById } from '../data/stores'
+import { fetchProductsByStore, fetchStoreById } from '../data/api'
 import { categoryMeta } from '../data/categories'
 import { formatBRL, formatEta } from '../lib/format'
-import type { Product } from '../types/domain'
+import type { Product, Store } from '../types/domain'
 import AddToCartSheet from '../components/AddToCartSheet'
 import { useCart } from '../context/CartContext'
 
 export default function StorePage() {
   const { storeId } = useParams<{ storeId: string }>()
-  const store = storeId ? getStoreById(storeId) : undefined
+  const [store, setStore] = useState<Store | null | undefined>(undefined)
+  const [products, setProducts] = useState<Product[]>([])
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const { storeId: cartStoreId, clearCart } = useCart()
 
-  const products = useMemo(() => (storeId ? getProductsByStore(storeId) : []), [storeId])
+  useEffect(() => {
+    if (!storeId) return
+    let cancelled = false
+    setStore(undefined)
+    Promise.all([fetchStoreById(storeId), fetchProductsByStore(storeId)])
+      .then(([s, p]) => {
+        if (cancelled) return
+        setStore(s ?? null)
+        setProducts(p)
+      })
+      .catch(() => {
+        if (!cancelled) setStore(null)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [storeId])
 
   const grouped = useMemo(() => {
     const map = new Map<string, Product[]>()
@@ -25,7 +42,11 @@ export default function StorePage() {
     return Array.from(map.entries())
   }, [products])
 
-  if (!store) return <Navigate to="/" replace />
+  if (store === undefined) {
+    return <div className="h-64 animate-pulse rounded-2xl bg-neutral-200" />
+  }
+
+  if (store === null) return <Navigate to="/" replace />
 
   const cat = categoryMeta(store.category)
 

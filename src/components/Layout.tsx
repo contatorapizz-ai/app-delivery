@@ -48,7 +48,24 @@ export default function Layout() {
                 <CartBadge variant="desktop" />
               </span>
             </NavLink>
+            <NavLink
+              to="/anunciar"
+              className={({ isActive }) =>
+                `ml-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                  isActive ? 'border-brand bg-brand text-white' : 'border-neutral-300 text-neutral-600 hover:border-brand hover:text-brand'
+                }`
+              }
+            >
+              📣 Anunciar
+            </NavLink>
           </nav>
+
+          <NavLink
+            to="/anunciar"
+            className="rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold text-neutral-600 lg:hidden"
+          >
+            📣 Anunciar
+          </NavLink>
         </div>
       </header>
 

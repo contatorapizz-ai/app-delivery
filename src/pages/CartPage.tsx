@@ -1,21 +1,36 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useOrders } from '../context/OrdersContext'
-import { getStoreById } from '../data/stores'
+import { createOrder, fetchStoreById } from '../data/api'
 import { formatBRL } from '../lib/format'
-import type { Order } from '../types/domain'
+import type { Order, Store } from '../types/domain'
 
 export default function CartPage() {
   const { items, storeId, updateQuantity, removeItem, itemsTotal, clearCart } = useCart()
   const { addOrder } = useOrders()
   const navigate = useNavigate()
 
-  const store = storeId ? getStoreById(storeId) : undefined
+  const [store, setStore] = useState<Store | undefined>(undefined)
   const [customerName, setCustomerName] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
   const [address, setAddress] = useState('')
   const [notes, setNotes] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    if (!storeId) {
+      setStore(undefined)
+      return
+    }
+    let cancelled = false
+    fetchStoreById(storeId).then((s) => {
+      if (!cancelled) setStore(s)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [storeId])
 
   const deliveryFee = store?.deliveryFee ?? 0
   const total = itemsTotal + deliveryFee
@@ -49,8 +64,27 @@ export default function CartPage() {
     return lines.join('\n')
   }
 
-  function handleFinalize() {
-    if (!store || !canSubmit) return
+  async function handleFinalize() {
+    if (!store || !canSubmit || submitting) return
+    setSubmitting(true)
+
+    const trimmedNotes = notes.trim() || undefined
+
+    try {
+      await createOrder({
+        storeId: store.id,
+        items,
+        subtotal: itemsTotal,
+        deliveryFee,
+        total,
+        customerName: customerName.trim(),
+        customerPhone: customerPhone.trim(),
+        address: address.trim(),
+        notes: trimmedNotes,
+      })
+    } catch {
+      // segue o fluxo mesmo se a gravação remota falhar — o pedido não pode travar por isso
+    }
 
     const order: Order = {
       id: `${Date.now()}`,
@@ -64,7 +98,7 @@ export default function CartPage() {
       customerName: customerName.trim(),
       customerPhone: customerPhone.trim(),
       address: address.trim(),
-      notes: notes.trim() || undefined,
+      notes: trimmedNotes,
     }
 
     addOrder(order)
@@ -224,10 +258,10 @@ export default function CartPage() {
 
           <button
             onClick={handleFinalize}
-            disabled={!canSubmit}
+            disabled={!canSubmit || submitting}
             className="w-full rounded-full bg-brand py-3.5 text-sm font-bold text-white disabled:opacity-40"
           >
-            Finalizar pedido pelo WhatsApp
+            {submitting ? 'Enviando...' : 'Finalizar pedido pelo WhatsApp'}
           </button>
           <p className="text-center text-xs text-neutral-400">
             Você será direcionado ao WhatsApp da loja para confirmar o pagamento e a entrega.

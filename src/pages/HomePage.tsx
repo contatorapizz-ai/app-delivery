@@ -1,23 +1,46 @@
-import { useMemo, useState } from 'react'
-import { STORES } from '../data/stores'
+import { useEffect, useMemo, useState } from 'react'
 import { CATEGORIES } from '../data/categories'
 import StoreCard from '../components/StoreCard'
-import type { StoreCategory } from '../types/domain'
+import BannerDestaque from '../components/ads/BannerDestaque'
+import StoryPremiumRow from '../components/ads/StoryPremiumRow'
+import ProdutoPatrocinado from '../components/ads/ProdutoPatrocinado'
+import { fetchStores } from '../data/api'
+import type { Store, StoreCategory } from '../types/domain'
 
 export default function HomePage() {
   const [query, setQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState<StoreCategory | null>(null)
+  const [stores, setStores] = useState<Store[]>([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    fetchStores()
+      .then((data) => {
+        if (!cancelled) setStores(data)
+      })
+      .catch(() => {
+        if (!cancelled) setLoadError(true)
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const filteredStores = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return STORES.filter((s) => {
+    return stores.filter((s) => {
       const matchesQuery = q.length === 0 || s.name.toLowerCase().includes(q)
       const matchesCategory = !activeCategory || s.category === activeCategory
       return matchesQuery && matchesCategory
     })
-  }, [query, activeCategory])
+  }, [stores, query, activeCategory])
 
-  const openCount = STORES.filter((s) => s.isOpen).length
+  const openCount = stores.filter((s) => s.isOpen).length
 
   return (
     <div className="space-y-8">
@@ -49,6 +72,8 @@ export default function HomePage() {
         </div>
       </section>
 
+      <StoryPremiumRow />
+
       <section>
         <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-neutral-500">Categorias</h2>
         <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 lg:mx-0 lg:flex-wrap lg:px-0">
@@ -78,12 +103,26 @@ export default function HomePage() {
         </div>
       </section>
 
+      <BannerDestaque />
+
+      <ProdutoPatrocinado />
+
       <section>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-base font-bold text-neutral-900">Lojas perto de você</h2>
-          <span className="text-sm text-neutral-400">{filteredStores.length} encontradas</span>
+          {!loading && <span className="text-sm text-neutral-400">{filteredStores.length} encontradas</span>}
         </div>
-        {filteredStores.length === 0 ? (
+        {loading ? (
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="h-44 animate-pulse rounded-2xl bg-neutral-200" />
+            ))}
+          </div>
+        ) : loadError ? (
+          <p className="rounded-xl border border-dashed border-neutral-300 py-16 text-center text-sm text-neutral-500">
+            Não foi possível carregar as lojas agora. Tente novamente em instantes.
+          </p>
+        ) : filteredStores.length === 0 ? (
           <p className="rounded-xl border border-dashed border-neutral-300 py-16 text-center text-sm text-neutral-500">
             Nenhuma loja encontrada para essa busca.
           </p>
