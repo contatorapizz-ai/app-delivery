@@ -116,6 +116,25 @@ export interface AdminTotals {
   activeCampaigns: number
 }
 
+export interface AdminClientOverviewRow {
+  store_id: string
+  store_name: string
+  category: string
+  owner_name: string | null
+  owner_email: string | null
+  campaign_count: number
+  total_budget_cents: number
+  active_budget_cents: number
+  completed_budget_cents: number
+  last_campaign_at: string | null
+}
+
+export async function fetchAdminClientOverview(): Promise<AdminClientOverviewRow[]> {
+  const { data, error } = await supabase.rpc('admin_client_overview')
+  if (error) throw error
+  return (data ?? []) as AdminClientOverviewRow[]
+}
+
 export async function fetchAdminTotals(): Promise<AdminTotals> {
   const { data: ledger, error: ledgerError } = await supabase
     .from('fund_ledger')
