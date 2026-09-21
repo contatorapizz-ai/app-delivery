@@ -80,7 +80,8 @@ function CreateStoreForm({ onCreated }: { onCreated: (store: StoreRow) => void }
         deliveryFee: Number(deliveryFee) || 0,
         minOrder: Number(minOrder) || 0,
       })
-      await supabase.from('profiles').update({ role: 'lojista' }).eq('id', session.user.id)
+      // só promove quem ainda é 'cliente' (default) — nunca rebaixa admin/motoboy
+      await supabase.from('profiles').update({ role: 'lojista' }).eq('id', session.user.id).eq('role', 'cliente')
       await refreshProfile()
       onCreated(store)
     } catch (err) {
