@@ -36,11 +36,11 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto max-w-2xl space-y-4">
       <h1 className="text-xl font-extrabold text-neutral-900">Meus pedidos</h1>
       <div className="space-y-3">
         {orders.map((order) => (
-          <div key={order.id} className="rounded-xl border border-neutral-200 bg-white p-3">
+          <div key={order.id} className="rounded-xl border border-neutral-200 bg-white p-4">
             <div className="flex items-start justify-between gap-2">
               <div>
                 <p className="font-semibold text-neutral-900">{order.storeName}</p>

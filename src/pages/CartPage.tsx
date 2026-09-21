@@ -92,139 +92,148 @@ export default function CartPage() {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-xl font-extrabold text-neutral-900">Seu carrinho</h1>
-      {store && <p className="text-sm text-neutral-500">{store.name}</p>}
+      <div>
+        <h1 className="text-xl font-extrabold text-neutral-900">Seu carrinho</h1>
+        {store && <p className="text-sm text-neutral-500">{store.name}</p>}
+      </div>
 
-      <div className="space-y-2">
-        {items.map((item) => (
-          <div key={item.id} className="rounded-xl border border-neutral-200 bg-white p-3">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <p className="truncate font-semibold text-neutral-900">{item.name}</p>
-                {item.selectedOptions.map((opt) => (
-                  <p key={opt.choiceId} className="text-xs text-neutral-500">
-                    {opt.groupLabel}: {opt.choiceLabel}
-                  </p>
-                ))}
-                {item.notes && <p className="text-xs italic text-neutral-500">Obs: {item.notes}</p>}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
+        <div className="space-y-5 lg:col-span-2">
+          <div className="space-y-2">
+            {items.map((item) => (
+              <div key={item.id} className="rounded-xl border border-neutral-200 bg-white p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-neutral-900">{item.name}</p>
+                    {item.selectedOptions.map((opt) => (
+                      <p key={opt.choiceId} className="text-xs text-neutral-500">
+                        {opt.groupLabel}: {opt.choiceLabel}
+                      </p>
+                    ))}
+                    {item.notes && <p className="text-xs italic text-neutral-500">Obs: {item.notes}</p>}
+                  </div>
+                  <p className="shrink-0 font-semibold text-brand">{formatBRL(item.unitPrice * item.quantity)}</p>
+                </div>
+                <div className="mt-2 flex items-center justify-between">
+                  <div className="flex items-center gap-3 rounded-full border border-neutral-200 px-3 py-1">
+                    <button
+                      aria-label="Diminuir"
+                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                      className="text-lg font-bold text-neutral-600"
+                    >
+                      −
+                    </button>
+                    <span className="w-5 text-center text-sm font-semibold">{item.quantity}</span>
+                    <button
+                      aria-label="Aumentar"
+                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                      className="text-lg font-bold text-neutral-600"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <button onClick={() => removeItem(item.id)} className="text-xs font-medium text-neutral-400">
+                    Remover
+                  </button>
+                </div>
               </div>
-              <p className="shrink-0 font-semibold text-brand">{formatBRL(item.unitPrice * item.quantity)}</p>
+            ))}
+          </div>
+
+          {store && belowMinimum && (
+            <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700">
+              Pedido mínimo de {formatBRL(store.minOrder)}. Faltam {formatBRL(store.minOrder - itemsTotal)}.
+            </p>
+          )}
+
+          <section className="space-y-3 rounded-xl border border-neutral-200 bg-white p-3">
+            <h2 className="text-sm font-bold text-neutral-900">Dados para entrega</h2>
+            <div>
+              <label htmlFor="name" className="mb-1 block text-xs font-medium text-neutral-600">
+                Nome completo
+              </label>
+              <input
+                id="name"
+                value={customerName}
+                maxLength={80}
+                onChange={(e) => setCustomerName(e.target.value)}
+                className="w-full rounded-lg border border-neutral-200 p-2.5 text-sm outline-none focus:border-brand"
+                placeholder="Seu nome"
+              />
             </div>
-            <div className="mt-2 flex items-center justify-between">
-              <div className="flex items-center gap-3 rounded-full border border-neutral-200 px-3 py-1">
-                <button
-                  aria-label="Diminuir"
-                  onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                  className="text-lg font-bold text-neutral-600"
-                >
-                  −
-                </button>
-                <span className="w-5 text-center text-sm font-semibold">{item.quantity}</span>
-                <button
-                  aria-label="Aumentar"
-                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                  className="text-lg font-bold text-neutral-600"
-                >
-                  +
-                </button>
-              </div>
-              <button onClick={() => removeItem(item.id)} className="text-xs font-medium text-neutral-400">
-                Remover
-              </button>
+            <div>
+              <label htmlFor="phone" className="mb-1 block text-xs font-medium text-neutral-600">
+                Telefone / WhatsApp
+              </label>
+              <input
+                id="phone"
+                value={customerPhone}
+                maxLength={20}
+                inputMode="tel"
+                onChange={(e) => setCustomerPhone(e.target.value)}
+                className="w-full rounded-lg border border-neutral-200 p-2.5 text-sm outline-none focus:border-brand"
+                placeholder="(27) 99999-9999"
+              />
+            </div>
+            <div>
+              <label htmlFor="address" className="mb-1 block text-xs font-medium text-neutral-600">
+                Endereço de entrega
+              </label>
+              <textarea
+                id="address"
+                value={address}
+                maxLength={200}
+                rows={2}
+                onChange={(e) => setAddress(e.target.value)}
+                className="w-full resize-none rounded-lg border border-neutral-200 p-2.5 text-sm outline-none focus:border-brand"
+                placeholder="Rua, número, bairro, ponto de referência"
+              />
+            </div>
+            <div>
+              <label htmlFor="orderNotes" className="mb-1 block text-xs font-medium text-neutral-600">
+                Observações do pedido (opcional)
+              </label>
+              <textarea
+                id="orderNotes"
+                value={notes}
+                maxLength={200}
+                rows={2}
+                onChange={(e) => setNotes(e.target.value)}
+                className="w-full resize-none rounded-lg border border-neutral-200 p-2.5 text-sm outline-none focus:border-brand"
+              />
+            </div>
+          </section>
+        </div>
+
+        <aside className="space-y-4 rounded-xl border border-neutral-200 bg-white p-4 lg:sticky lg:top-24">
+          <h2 className="text-sm font-bold text-neutral-900">Resumo do pedido</h2>
+          <div className="space-y-1 text-sm">
+            <div className="flex justify-between text-neutral-600">
+              <span>Subtotal</span>
+              <span>{formatBRL(itemsTotal)}</span>
+            </div>
+            <div className="flex justify-between text-neutral-600">
+              <span>Taxa de entrega</span>
+              <span>{formatBRL(deliveryFee)}</span>
+            </div>
+            <div className="flex justify-between border-t border-neutral-100 pt-1 font-bold text-neutral-900">
+              <span>Total</span>
+              <span>{formatBRL(total)}</span>
             </div>
           </div>
-        ))}
+
+          <button
+            onClick={handleFinalize}
+            disabled={!canSubmit}
+            className="w-full rounded-full bg-brand py-3.5 text-sm font-bold text-white disabled:opacity-40"
+          >
+            Finalizar pedido pelo WhatsApp
+          </button>
+          <p className="text-center text-xs text-neutral-400">
+            Você será direcionado ao WhatsApp da loja para confirmar o pagamento e a entrega.
+          </p>
+        </aside>
       </div>
-
-      {store && belowMinimum && (
-        <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700">
-          Pedido mínimo de {formatBRL(store.minOrder)}. Faltam {formatBRL(store.minOrder - itemsTotal)}.
-        </p>
-      )}
-
-      <div className="space-y-1 rounded-xl border border-neutral-200 bg-white p-3 text-sm">
-        <div className="flex justify-between text-neutral-600">
-          <span>Subtotal</span>
-          <span>{formatBRL(itemsTotal)}</span>
-        </div>
-        <div className="flex justify-between text-neutral-600">
-          <span>Taxa de entrega</span>
-          <span>{formatBRL(deliveryFee)}</span>
-        </div>
-        <div className="flex justify-between border-t border-neutral-100 pt-1 font-bold text-neutral-900">
-          <span>Total</span>
-          <span>{formatBRL(total)}</span>
-        </div>
-      </div>
-
-      <section className="space-y-3 rounded-xl border border-neutral-200 bg-white p-3">
-        <h2 className="text-sm font-bold text-neutral-900">Dados para entrega</h2>
-        <div>
-          <label htmlFor="name" className="mb-1 block text-xs font-medium text-neutral-600">
-            Nome completo
-          </label>
-          <input
-            id="name"
-            value={customerName}
-            maxLength={80}
-            onChange={(e) => setCustomerName(e.target.value)}
-            className="w-full rounded-lg border border-neutral-200 p-2.5 text-sm outline-none focus:border-brand"
-            placeholder="Seu nome"
-          />
-        </div>
-        <div>
-          <label htmlFor="phone" className="mb-1 block text-xs font-medium text-neutral-600">
-            Telefone / WhatsApp
-          </label>
-          <input
-            id="phone"
-            value={customerPhone}
-            maxLength={20}
-            inputMode="tel"
-            onChange={(e) => setCustomerPhone(e.target.value)}
-            className="w-full rounded-lg border border-neutral-200 p-2.5 text-sm outline-none focus:border-brand"
-            placeholder="(27) 99999-9999"
-          />
-        </div>
-        <div>
-          <label htmlFor="address" className="mb-1 block text-xs font-medium text-neutral-600">
-            Endereço de entrega
-          </label>
-          <textarea
-            id="address"
-            value={address}
-            maxLength={200}
-            rows={2}
-            onChange={(e) => setAddress(e.target.value)}
-            className="w-full resize-none rounded-lg border border-neutral-200 p-2.5 text-sm outline-none focus:border-brand"
-            placeholder="Rua, número, bairro, ponto de referência"
-          />
-        </div>
-        <div>
-          <label htmlFor="orderNotes" className="mb-1 block text-xs font-medium text-neutral-600">
-            Observações do pedido (opcional)
-          </label>
-          <textarea
-            id="orderNotes"
-            value={notes}
-            maxLength={200}
-            rows={2}
-            onChange={(e) => setNotes(e.target.value)}
-            className="w-full resize-none rounded-lg border border-neutral-200 p-2.5 text-sm outline-none focus:border-brand"
-          />
-        </div>
-      </section>
-
-      <button
-        onClick={handleFinalize}
-        disabled={!canSubmit}
-        className="w-full rounded-full bg-brand py-3.5 text-sm font-bold text-white disabled:opacity-40"
-      >
-        Finalizar pedido pelo WhatsApp
-      </button>
-      <p className="text-center text-xs text-neutral-400">
-        Você será direcionado ao WhatsApp da loja para confirmar o pagamento e a entrega.
-      </p>
     </div>
   )
 }
