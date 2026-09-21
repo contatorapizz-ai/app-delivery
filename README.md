@@ -45,7 +45,21 @@ npm run lint      # lint (oxlint)
 
 ## Ícones e marca
 
-O logotipo usado (`src/brand/logo-mark.svg`) é um placeholder criado para este projeto — nenhuma arte de logo foi enviada pelo cliente até o momento. Para gerar os ícones de PWA a partir de uma logo definitiva, substitua o arquivo `src/brand/logo-mark.svg` e rode:
+A identidade visual usa a logo oficial enviada pelo cliente (`Arquivos_Logotipo_Rapizz.ai`), vetorizada a partir do arquivo original em três variantes:
+
+- `src/brand/logo-mark.svg` — símbolo isolado (usado nos ícones de PWA e favicon)
+- `src/brand/logo-lockup.svg` — símbolo + wordmark em azul-marinho, para fundos claros (usado no cabeçalho do app)
+- `src/brand/logo-lockup-dark.svg` — símbolo + wordmark em branco, para fundos escuros/coloridos
+
+Paleta oficial extraída da arte:
+
+| Cor | Hex |
+| --- | --- |
+| Crimson (marca) | `#e5194c` |
+| Azul-marinho | `#191f6b` |
+| Laranja | `#fe9015` |
+
+Esses tokens estão em `src/index.css` (`--color-brand`, `--color-navy`, `--color-accent`). Para atualizar a logo no futuro, substitua os arquivos em `src/brand/` e rode:
 
 ```bash
 node scripts/generate-icons.mjs

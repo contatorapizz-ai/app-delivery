@@ -115,7 +115,7 @@ export default function AddToCartSheet({ product, onClose }: Props) {
                         name={g.id}
                         checked={checked}
                         onChange={() => toggleChoice(g, c.id)}
-                        className="accent-[#e11d2e]"
+                        className="accent-[#e5194c]"
                       />
                       {c.label}
                     </span>

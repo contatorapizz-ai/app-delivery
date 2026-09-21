@@ -21,12 +21,12 @@ export default function HomePage() {
 
   return (
     <div className="space-y-8">
-      <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-brand via-brand to-brand-dark px-6 py-8 text-white shadow-lg shadow-red-900/10 sm:px-10 sm:py-12">
-        <p className="text-sm font-semibold uppercase tracking-wide text-red-100">Rapizz Delivery</p>
+      <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-brand via-brand to-navy px-6 py-8 text-white shadow-lg shadow-navy/20 sm:px-10 sm:py-12">
+        <p className="text-sm font-semibold uppercase tracking-wide text-white/80">Rapizz Delivery</p>
         <h1 className="mt-1 max-w-lg text-2xl font-extrabold leading-tight sm:text-3xl lg:text-4xl">
           Peça comida das melhores lojas perto de você
         </h1>
-        <p className="mt-2 max-w-md text-sm text-red-50/90 sm:text-base">
+        <p className="mt-2 max-w-md text-sm text-white/85 sm:text-base">
           {openCount} lojas abertas agora · entrega rápida · pedido direto pelo WhatsApp
         </p>
 
