@@ -6,6 +6,7 @@ import CartPage from './pages/CartPage'
 import OrdersPage from './pages/OrdersPage'
 import LojistaPage from './pages/LojistaPage'
 import AdminPage from './pages/AdminPage'
+import AdminStoreDetailPage from './pages/AdminStoreDetailPage'
 import AccountPage from './pages/AccountPage'
 import NotFoundPage from './pages/NotFoundPage'
 import { CartProvider } from './context/CartContext'
@@ -30,6 +31,7 @@ export default function App() {
                 <Route path="pedidos" element={<OrdersPage />} />
                 <Route path="anunciar" element={<LojistaPage />} />
                 <Route path="admin" element={<AdminPage />} />
+                <Route path="admin/lojas/:storeId" element={<AdminStoreDetailPage />} />
                 <Route path="conta" element={<AccountPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Route>

@@ -22,6 +22,7 @@ export interface ProfileRow {
   id: string
   role: UserRole
   full_name: string
+  email: string | null
   phone: string | null
   created_at: string
 }

@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase'
 import { getAdSessionId } from '../lib/adSession'
 import { reaisToCents } from '../lib/mappers'
-import type { AdCampaignRow, AdFormat, AdObjective, StoreRow } from '../types/database'
+import type { AdCampaignRow, AdFormat, AdObjective, ProfileRow, StoreRow } from '../types/database'
 
 export async function fetchMyStore(ownerId: string): Promise<StoreRow | undefined> {
   const { data, error } = await supabase.from('stores').select('*').eq('owner_id', ownerId).maybeSingle()
@@ -133,6 +133,33 @@ export async function fetchAdminClientOverview(): Promise<AdminClientOverviewRow
   const { data, error } = await supabase.rpc('admin_client_overview')
   if (error) throw error
   return (data ?? []) as AdminClientOverviewRow[]
+}
+
+export interface AdminStoreDetail {
+  store: StoreRow
+  owner: ProfileRow | null
+  campaigns: AdCampaignRow[]
+}
+
+export async function fetchAdminStoreDetail(storeId: string): Promise<AdminStoreDetail> {
+  const { data: store, error: storeError } = await supabase.from('stores').select('*').eq('id', storeId).single()
+  if (storeError) throw storeError
+
+  const storeRow = store as StoreRow
+
+  const [{ data: owner }, { data: campaigns, error: campaignsError }] = await Promise.all([
+    storeRow.owner_id
+      ? supabase.from('profiles').select('*').eq('id', storeRow.owner_id).maybeSingle()
+      : Promise.resolve({ data: null }),
+    supabase.from('ad_campaigns').select('*').eq('store_id', storeId).order('created_at', { ascending: false }),
+  ])
+  if (campaignsError) throw campaignsError
+
+  return {
+    store: storeRow,
+    owner: (owner as ProfileRow | null) ?? null,
+    campaigns: (campaigns ?? []) as AdCampaignRow[],
+  }
 }
 
 export async function fetchAdminTotals(): Promise<AdminTotals> {

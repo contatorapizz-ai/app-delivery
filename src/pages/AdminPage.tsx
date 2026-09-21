@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { fetchAdminClientOverview, fetchAdminTotals, type AdminClientOverviewRow, type AdminTotals } from '../data/ads.api'
+import { createLojista } from '../data/adminUsers.api'
 import { categoryMeta } from '../data/categories'
 import { formatBRL } from '../lib/format'
 import type { StoreCategory } from '../types/domain'
@@ -22,7 +24,10 @@ function ClientCard({ client }: { client: AdminClientOverviewRow }) {
   const initial = client.store_name.charAt(0).toUpperCase()
 
   return (
-    <div className="flex items-start gap-3 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm transition hover:shadow-md sm:items-center">
+    <Link
+      to={`/admin/lojas/${client.store_id}`}
+      className="flex items-start gap-3 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm transition hover:shadow-md sm:items-center"
+    >
       <span
         className={`grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gradient-to-br ${cat.gradient} text-lg font-extrabold text-white`}
       >
@@ -55,7 +60,123 @@ function ClientCard({ client }: { client: AdminClientOverviewRow }) {
           </span>
         </div>
       </div>
-    </div>
+      <span aria-hidden className="hidden self-center text-neutral-300 sm:block">
+        →
+      </span>
+    </Link>
+  )
+}
+
+function generatePassword(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789'
+  const bytes = new Uint32Array(14)
+  crypto.getRandomValues(bytes)
+  return Array.from(bytes, (b) => chars[b % chars.length]).join('')
+}
+
+function AddLojistaForm({ onCreated }: { onCreated: () => void }) {
+  const [open, setOpen] = useState(false)
+  const [email, setEmail] = useState('')
+  const [fullName, setFullName] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [created, setCreated] = useState<{ email: string; password: string } | null>(null)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError(null)
+    setLoading(true)
+    const password = generatePassword()
+    try {
+      await createLojista({ email: email.trim().toLowerCase(), fullName: fullName.trim(), password })
+      setCreated({ email: email.trim().toLowerCase(), password })
+      setEmail('')
+      setFullName('')
+      onCreated()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível criar a conta.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (created) {
+    return (
+      <div className="space-y-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+        <p className="text-sm font-semibold text-emerald-800">Conta criada! Anote a senha agora — não será mostrada de novo.</p>
+        <div className="rounded-lg bg-white p-3 text-sm">
+          <p>
+            <span className="text-neutral-500">E-mail:</span> <strong>{created.email}</strong>
+          </p>
+          <p>
+            <span className="text-neutral-500">Senha:</span>{' '}
+            <strong className="font-mono">{created.password}</strong>
+          </p>
+        </div>
+        <button
+          onClick={() => {
+            setCreated(null)
+            setOpen(false)
+          }}
+          className="text-xs font-semibold text-emerald-700 underline"
+        >
+          Fechar
+        </button>
+      </div>
+    )
+  }
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="w-full rounded-2xl border border-dashed border-neutral-300 py-3 text-sm font-semibold text-neutral-600 hover:border-brand hover:text-brand"
+      >
+        + Adicionar lojista
+      </button>
+    )
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3 rounded-2xl border border-neutral-200 bg-white p-4">
+      <h3 className="text-sm font-bold text-neutral-900">Nova conta de lojista</h3>
+      <p className="text-xs text-neutral-500">
+        Cria o login já confirmado (sem precisar de e-mail de confirmação). Uma senha aleatória é gerada — você
+        repassa pra pessoa.
+      </p>
+      <input
+        required
+        placeholder="Nome"
+        value={fullName}
+        onChange={(e) => setFullName(e.target.value)}
+        className="w-full rounded-lg border border-neutral-200 p-2.5 text-sm outline-none focus:border-brand"
+      />
+      <input
+        required
+        type="email"
+        placeholder="E-mail"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        className="w-full rounded-lg border border-neutral-200 p-2.5 text-sm outline-none focus:border-brand"
+      />
+      {error && <p className="text-sm text-red-600">{error}</p>}
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          className="flex-1 rounded-full border border-neutral-200 py-2 text-sm font-semibold text-neutral-600"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          disabled={loading}
+          className="flex-1 rounded-full bg-brand py-2 text-sm font-bold text-white disabled:opacity-50"
+        >
+          {loading ? 'Criando...' : 'Criar conta'}
+        </button>
+      </div>
+    </form>
   )
 }
 
@@ -65,7 +186,7 @@ export default function AdminPage() {
   const [clients, setClients] = useState<AdminClientOverviewRow[] | null>(null)
   const [error, setError] = useState(false)
 
-  useEffect(() => {
+  function loadData() {
     if (profile?.role === 'admin') {
       Promise.all([fetchAdminTotals(), fetchAdminClientOverview()])
         .then(([t, c]) => {
@@ -74,6 +195,11 @@ export default function AdminPage() {
         })
         .catch(() => setError(true))
     }
+  }
+
+  useEffect(() => {
+    loadData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile])
 
   if (loading) return <div className="h-64 animate-pulse rounded-2xl bg-neutral-200" />
@@ -111,7 +237,11 @@ export default function AdminPage() {
       )}
 
       <section className="space-y-3">
-        <h2 className="text-sm font-bold uppercase tracking-wide text-neutral-500">Clientes (lojistas)</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-neutral-500">Clientes (lojistas)</h2>
+        </div>
+
+        <AddLojistaForm onCreated={loadData} />
 
         {clients && clients.length === 0 && (
           <p className="rounded-xl border border-dashed border-neutral-300 py-8 text-center text-sm text-neutral-500">
