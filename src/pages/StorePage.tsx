@@ -5,6 +5,7 @@ import { categoryMeta } from '../data/categories'
 import { formatBRL, formatEta } from '../lib/format'
 import type { Product, Store } from '../types/domain'
 import AddToCartSheet from '../components/AddToCartSheet'
+import MediaTile from '../components/MediaTile'
 import { useCart } from '../context/CartContext'
 
 export default function StorePage() {
@@ -69,11 +70,13 @@ export default function StorePage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
         <div className="lg:col-span-2">
-          <div
-            className={`flex h-32 items-center justify-center rounded-2xl bg-gradient-to-br ${cat.gradient} text-6xl lg:h-44 lg:text-7xl`}
-          >
-            {cat.emoji}
-          </div>
+          <MediaTile
+            src={store.imageUrl}
+            alt={store.name}
+            icon={cat.emoji}
+            className="h-32 w-full rounded-2xl lg:h-44"
+            iconClassName="text-5xl lg:text-6xl"
+          />
         </div>
 
         <aside className="rounded-2xl border border-neutral-200 bg-white p-4 lg:sticky lg:top-24 lg:row-span-2">
@@ -105,9 +108,13 @@ export default function StorePage() {
                     disabled={!store.isOpen}
                     className="flex w-full items-center gap-3 rounded-xl border border-neutral-200 bg-white p-3 text-left shadow-sm transition hover:border-brand/40 hover:shadow disabled:opacity-50"
                   >
-                    <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-brand-light text-2xl">
-                      {product.emoji}
-                    </span>
+                    <MediaTile
+                      src={product.imageUrl}
+                      alt={product.name}
+                      icon="🍽️"
+                      className="h-12 w-12 shrink-0 rounded-lg"
+                      iconClassName="text-lg"
+                    />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-semibold text-neutral-900">{product.name}</span>
                       <span className="block truncate text-xs text-neutral-500">{product.description}</span>

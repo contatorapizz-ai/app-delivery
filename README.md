@@ -17,7 +17,7 @@ Segue **fora** de qualquer escopo (não incluso mesmo com a expansão): aplicati
 
 A partir do documento de visão enviado pelo cliente ("Rapizz Ads + Fundo Motoboy + Segmentação Inteligente"), foi implementada a primeira fase, com backend real (Supabase):
 
-- **Cadastro de lojista** (`/anunciar`): login/cadastro por e-mail e senha, criação da própria loja.
+- **Cadastro de lojista** (`/anunciar`): login/cadastro por e-mail e senha, criação da própria loja, foto da loja e cardápio (itens com nome, descrição, preço, categoria e foto) gerenciados direto pelo lojista — sem depender de SQL.
 - **Criação de campanhas**: objetivo, formato, orçamento, período. Formatos com exibição real no app do cliente nesta fase: **Story Premium**, **Banner Destaque** e **Produto Patrocinado** (os demais formatos do documento ficam registrados no sistema, mas sem superfície visual ainda — marcados como "em breve" no formulário).
 - **Ativação de campanha**: como não há gateway de pagamento integrado, a ativação é uma simulação explícita ("Simular pagamento e ativar") — o texto do botão deixa isso claro para quem estiver testando. É o ponto exato onde uma integração de pagamento real entraria no futuro.
 - **Fundo Motoboy**: toda campanha ativada registra automaticamente um lançamento no `fund_ledger` com split 50% plataforma / 50% fundo, calculado a partir do orçamento da campanha (`activate_campaign`, função no banco).
@@ -75,7 +75,7 @@ O app shell (HTML/CSS/JS) fica pré-cacheado pelo service worker e continua func
 - `.env` está no `.gitignore`; `.env.example` documenta as variáveis sem valores reais.
 - RLS habilitado em todas as tabelas, com policies específicas por papel (cliente, lojista, admin). Lançamentos no `fund_ledger` só acontecem através da função `activate_campaign` (que valida posse da loja internamente) — não existe policy de `INSERT` direta nessa tabela.
 - Funções `SECURITY DEFINER` foram revisadas com o advisor de segurança do Supabase: a função de trigger (`handle_new_user`) teve `EXECUTE` revogado de `PUBLIC`/`anon`/`authenticated` (só roda via trigger); `activate_campaign` só é executável por usuários autenticados.
-- `Content-Security-Policy`, `X-Content-Type-Options` e `Referrer-Policy` configurados em `index.html`; `connect-src` da CSP é preenchido em build-time com a URL do próprio projeto Supabase (`%VITE_SUPABASE_URL%`), sem abrir para qualquer domínio.
+- `Content-Security-Policy`, `X-Content-Type-Options` e `Referrer-Policy` configurados em `index.html`; `connect-src` da CSP é preenchido em build-time com a URL do próprio projeto Supabase (`%VITE_SUPABASE_URL%`), sem abrir para qualquer domínio. `img-src` permite `https:` para exibir as fotos de loja/produto que o lojista cadastra por URL (`<img>` não executa código, então isso não abre brecha de script; só imagens vindas de HTTPS são aceitas).
 - Entradas de texto do cliente têm `maxLength` e nenhum ponto do app usa `dangerouslySetInnerHTML` ou `eval`.
 - Dados de exemplo (lojas seed) usam números e endereços fictícios — nenhum dado pessoal do contrato (CPF, telefone, e-mail, endereço das partes) foi incluído no código ou no banco.
 

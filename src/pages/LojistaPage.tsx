@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import AuthForm from '../components/auth/AuthForm'
+import MediaTile from '../components/MediaTile'
 import {
   activateCampaign,
   createCampaign,
@@ -9,12 +10,21 @@ import {
   fetchCampaignMetrics,
   fetchMyCampaigns,
   fetchMyStore,
+  updateStoreImage,
 } from '../data/ads.api'
+import { fetchProductsByStore } from '../data/api'
+import { createProduct, deleteProduct, updateProduct } from '../data/products.api'
 import { CATEGORIES } from '../data/categories'
-import type { StoreCategory } from '../types/domain'
+import type { Product, StoreCategory } from '../types/domain'
 import { formatBRL } from '../lib/format'
 import { FORMAT_LABEL, LIVE_FORMATS, OBJECTIVE_LABEL, STATUS_COLOR, STATUS_LABEL } from '../lib/adLabels'
 import type { AdCampaignRow, AdFormat, AdObjective, StoreRow } from '../types/database'
+
+function normalizeImageUrl(raw: string): string | null {
+  const trimmed = raw.trim()
+  if (!trimmed) return null
+  return /^https:\/\//.test(trimmed) ? trimmed : null
+}
 
 function CreateStoreForm({ onCreated }: { onCreated: (store: StoreRow) => void }) {
   const { session, refreshProfile } = useAuth()
@@ -24,6 +34,7 @@ function CreateStoreForm({ onCreated }: { onCreated: (store: StoreRow) => void }
   const [whatsapp, setWhatsapp] = useState('')
   const [deliveryFee, setDeliveryFee] = useState('')
   const [minOrder, setMinOrder] = useState('')
+  const [imageUrl, setImageUrl] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -41,6 +52,7 @@ function CreateStoreForm({ onCreated }: { onCreated: (store: StoreRow) => void }
         whatsapp,
         deliveryFee: Number(deliveryFee) || 0,
         minOrder: Number(minOrder) || 0,
+        imageUrl: normalizeImageUrl(imageUrl),
       })
       // só promove quem ainda é 'cliente' (default) — nunca rebaixa admin/motoboy
       await supabase.from('profiles').update({ role: 'lojista' }).eq('id', session.user.id).eq('role', 'cliente')
@@ -111,6 +123,21 @@ function CreateStoreForm({ onCreated }: { onCreated: (store: StoreRow) => void }
             placeholder="Pedido mínimo (R$)"
             value={minOrder}
             onChange={(e) => setMinOrder(e.target.value)}
+            className="w-full rounded-lg border border-neutral-200 p-2.5 text-sm outline-none focus:border-brand"
+          />
+        </div>
+        <div className="flex items-center gap-3">
+          <MediaTile
+            src={normalizeImageUrl(imageUrl)}
+            alt="Pré-visualização da loja"
+            icon="🏪"
+            className="h-14 w-14 shrink-0 rounded-lg"
+            iconClassName="text-lg"
+          />
+          <input
+            placeholder="URL da foto da loja (opcional, https://...)"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
             className="w-full rounded-lg border border-neutral-200 p-2.5 text-sm outline-none focus:border-brand"
           />
         </div>
@@ -341,6 +368,364 @@ function CampaignRow({ campaign, onChanged }: { campaign: AdCampaignRow; onChang
   )
 }
 
+function StoreImageEditor({ store, onUpdated }: { store: StoreRow; onUpdated: (url: string | null) => void }) {
+  const [editing, setEditing] = useState(false)
+  const [imageUrl, setImageUrl] = useState(store.image_url ?? '')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleSave() {
+    setSaving(true)
+    setError(null)
+    try {
+      const normalized = normalizeImageUrl(imageUrl)
+      await updateStoreImage(store.id, normalized)
+      onUpdated(normalized)
+      setEditing(false)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível salvar a foto.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-4">
+      <MediaTile
+        src={store.image_url}
+        alt={store.name}
+        icon="🏪"
+        className="h-16 w-16 shrink-0 rounded-xl"
+        iconClassName="text-2xl"
+      />
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-neutral-900">Foto da loja</p>
+        {editing ? (
+          <div className="mt-1.5 space-y-1.5">
+            <input
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              placeholder="https://..."
+              className="w-full rounded-lg border border-neutral-200 p-2 text-sm outline-none focus:border-brand"
+            />
+            {error && <p className="text-xs text-red-600">{error}</p>}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setEditing(false)}
+                className="rounded-full border border-neutral-200 px-3 py-1 text-xs font-semibold text-neutral-600"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="rounded-full bg-brand px-3 py-1 text-xs font-bold text-white disabled:opacity-50"
+              >
+                {saving ? 'Salvando...' : 'Salvar'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button onClick={() => setEditing(true)} className="mt-0.5 text-xs font-semibold text-brand">
+            {store.image_url ? 'Trocar foto' : 'Adicionar foto'}
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ProductForm({ storeId, onCreated }: { storeId: string; onCreated: () => void }) {
+  const [open, setOpen] = useState(false)
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [price, setPrice] = useState('')
+  const [menuCategory, setMenuCategory] = useState('')
+  const [imageUrl, setImageUrl] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError(null)
+    setLoading(true)
+    try {
+      await createProduct({
+        storeId,
+        name,
+        description,
+        price: Number(price) || 0,
+        menuCategory: menuCategory.trim() || 'Geral',
+        imageUrl: normalizeImageUrl(imageUrl),
+      })
+      setName('')
+      setDescription('')
+      setPrice('')
+      setMenuCategory('')
+      setImageUrl('')
+      setOpen(false)
+      onCreated()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível criar o item.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="w-full rounded-2xl border border-dashed border-neutral-300 py-3 text-sm font-semibold text-neutral-600 hover:border-brand hover:text-brand"
+      >
+        + Adicionar item ao cardápio
+      </button>
+    )
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3 rounded-2xl border border-neutral-200 bg-white p-4">
+      <h3 className="text-sm font-bold text-neutral-900">Novo item</h3>
+      <input
+        required
+        placeholder="Nome do item"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        className="w-full rounded-lg border border-neutral-200 p-2.5 text-sm outline-none focus:border-brand"
+      />
+      <input
+        placeholder="Descrição (opcional)"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        className="w-full rounded-lg border border-neutral-200 p-2.5 text-sm outline-none focus:border-brand"
+      />
+      <div className="grid grid-cols-2 gap-3">
+        <input
+          required
+          type="number"
+          step="0.01"
+          min="0"
+          placeholder="Preço (R$)"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+          className="w-full rounded-lg border border-neutral-200 p-2.5 text-sm outline-none focus:border-brand"
+        />
+        <input
+          required
+          placeholder="Categoria (ex: Pizzas)"
+          value={menuCategory}
+          onChange={(e) => setMenuCategory(e.target.value)}
+          className="w-full rounded-lg border border-neutral-200 p-2.5 text-sm outline-none focus:border-brand"
+        />
+      </div>
+      <div className="flex items-center gap-3">
+        <MediaTile
+          src={normalizeImageUrl(imageUrl)}
+          alt="Pré-visualização"
+          icon="🍽️"
+          className="h-14 w-14 shrink-0 rounded-lg"
+          iconClassName="text-lg"
+        />
+        <input
+          placeholder="URL da foto do item (opcional, https://...)"
+          value={imageUrl}
+          onChange={(e) => setImageUrl(e.target.value)}
+          className="w-full rounded-lg border border-neutral-200 p-2.5 text-sm outline-none focus:border-brand"
+        />
+      </div>
+      {error && <p className="text-sm text-red-600">{error}</p>}
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          className="flex-1 rounded-full border border-neutral-200 py-2 text-sm font-semibold text-neutral-600"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          disabled={loading}
+          className="flex-1 rounded-full bg-brand py-2 text-sm font-bold text-white disabled:opacity-50"
+        >
+          {loading ? 'Salvando...' : 'Adicionar'}
+        </button>
+      </div>
+    </form>
+  )
+}
+
+function ProductRow({ product, onChanged }: { product: Product; onChanged: () => void }) {
+  const [editing, setEditing] = useState(false)
+  const [name, setName] = useState(product.name)
+  const [description, setDescription] = useState(product.description)
+  const [price, setPrice] = useState(String(product.price))
+  const [menuCategory, setMenuCategory] = useState(product.menuCategory)
+  const [imageUrl, setImageUrl] = useState(product.imageUrl ?? '')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault()
+    setSaving(true)
+    setError(null)
+    try {
+      await updateProduct(product.id, {
+        name,
+        description,
+        price: Number(price) || 0,
+        menuCategory: menuCategory.trim() || 'Geral',
+        imageUrl: normalizeImageUrl(imageUrl),
+      })
+      setEditing(false)
+      onChanged()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível salvar.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleDelete() {
+    if (!confirm(`Excluir "${product.name}" do cardápio? Essa ação não pode ser desfeita.`)) return
+    try {
+      await deleteProduct(product.id)
+      onChanged()
+    } catch {
+      // erro silencioso — lojista pode tentar de novo
+    }
+  }
+
+  if (!editing) {
+    return (
+      <div className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-white p-3">
+        <MediaTile
+          src={product.imageUrl}
+          alt={product.name}
+          icon="🍽️"
+          className="h-12 w-12 shrink-0 rounded-lg"
+          iconClassName="text-lg"
+        />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-neutral-900">{product.name}</p>
+          <p className="truncate text-xs text-neutral-500">
+            {product.menuCategory} · {formatBRL(product.price)}
+          </p>
+        </div>
+        <button onClick={() => setEditing(true)} className="shrink-0 text-xs font-semibold text-neutral-500 hover:text-brand">
+          Editar
+        </button>
+        <button onClick={handleDelete} className="shrink-0 text-xs font-semibold text-red-500 hover:text-red-700">
+          Excluir
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <form onSubmit={handleSave} className="space-y-2 rounded-xl border border-brand/30 bg-white p-3">
+      <input
+        required
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Nome"
+        className="w-full rounded-lg border border-neutral-200 p-2 text-sm outline-none focus:border-brand"
+      />
+      <input
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        placeholder="Descrição"
+        className="w-full rounded-lg border border-neutral-200 p-2 text-sm outline-none focus:border-brand"
+      />
+      <div className="grid grid-cols-2 gap-2">
+        <input
+          required
+          type="number"
+          step="0.01"
+          min="0"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+          placeholder="Preço (R$)"
+          className="w-full rounded-lg border border-neutral-200 p-2 text-sm outline-none focus:border-brand"
+        />
+        <input
+          required
+          value={menuCategory}
+          onChange={(e) => setMenuCategory(e.target.value)}
+          placeholder="Categoria"
+          className="w-full rounded-lg border border-neutral-200 p-2 text-sm outline-none focus:border-brand"
+        />
+      </div>
+      <div className="flex items-center gap-2">
+        <MediaTile
+          src={normalizeImageUrl(imageUrl)}
+          alt="Pré-visualização"
+          icon="🍽️"
+          className="h-12 w-12 shrink-0 rounded-lg"
+          iconClassName="text-base"
+        />
+        <input
+          value={imageUrl}
+          onChange={(e) => setImageUrl(e.target.value)}
+          placeholder="URL da foto (https://...)"
+          className="w-full rounded-lg border border-neutral-200 p-2 text-sm outline-none focus:border-brand"
+        />
+      </div>
+      {error && <p className="text-xs text-red-600">{error}</p>}
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => setEditing(false)}
+          className="flex-1 rounded-full border border-neutral-200 py-1.5 text-xs font-semibold text-neutral-600"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          disabled={saving}
+          className="flex-1 rounded-full bg-brand py-1.5 text-xs font-bold text-white disabled:opacity-50"
+        >
+          {saving ? 'Salvando...' : 'Salvar'}
+        </button>
+      </div>
+    </form>
+  )
+}
+
+function ProductsSection({ storeId }: { storeId: string }) {
+  const [products, setProducts] = useState<Product[] | null>(null)
+
+  function load() {
+    fetchProductsByStore(storeId)
+      .then(setProducts)
+      .catch(() => setProducts([]))
+  }
+
+  useEffect(() => {
+    load()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storeId])
+
+  return (
+    <section className="space-y-3">
+      <h2 className="text-sm font-bold uppercase tracking-wide text-neutral-500">Meu cardápio</h2>
+      <ProductForm storeId={storeId} onCreated={load} />
+      {products === null ? (
+        <div className="h-20 animate-pulse rounded-xl bg-neutral-200" />
+      ) : products.length === 0 ? (
+        <p className="rounded-xl border border-dashed border-neutral-300 py-8 text-center text-sm text-neutral-500">
+          Nenhum item cadastrado ainda.
+        </p>
+      ) : (
+        <div className="space-y-2">
+          {products.map((p) => (
+            <ProductRow key={p.id} product={p} onChanged={load} />
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
+
 export default function LojistaPage() {
   const { session, loading } = useAuth()
   const [store, setStore] = useState<StoreRow | null | undefined>(undefined)
@@ -376,7 +761,16 @@ export default function LojistaPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h1 className="text-xl font-extrabold text-neutral-900">Rapizz Ads — {store.name}</h1>
+        <h1 className="text-xl font-extrabold text-neutral-900">{store.name}</h1>
+        <p className="text-sm text-neutral-500">Gerencie seu cardápio e suas campanhas do Rapizz Ads.</p>
+      </div>
+
+      <StoreImageEditor store={store} onUpdated={(image_url) => setStore({ ...store, image_url })} />
+
+      <ProductsSection storeId={store.id} />
+
+      <div>
+        <h2 className="text-sm font-bold uppercase tracking-wide text-neutral-500">Rapizz Ads</h2>
         <p className="text-sm text-neutral-500">Crie campanhas e acompanhe o desempenho dos seus anúncios.</p>
       </div>
 

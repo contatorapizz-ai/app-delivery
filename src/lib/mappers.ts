@@ -21,6 +21,7 @@ export function mapStore(row: StoreRow): Store {
     isOpen: row.is_open,
     whatsapp: row.whatsapp,
     address: row.address,
+    imageUrl: row.image_url,
   }
 }
 
@@ -46,6 +47,7 @@ export function mapProduct(row: ProductRow): Product {
     description: row.description,
     price: centsToReais(row.price_cents),
     emoji: row.emoji,
+    imageUrl: row.image_url,
     menuCategory: row.menu_category,
     optionGroups: (row.option_groups ?? []).map(mapOptionGroup),
   }

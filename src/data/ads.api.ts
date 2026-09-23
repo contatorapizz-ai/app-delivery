@@ -17,6 +17,7 @@ export async function createStore(input: {
   whatsapp: string
   deliveryFee: number
   minOrder: number
+  imageUrl: string | null
 }): Promise<StoreRow> {
   const { data, error } = await supabase
     .from('stores')
@@ -28,11 +29,17 @@ export async function createStore(input: {
       whatsapp: input.whatsapp,
       delivery_fee_cents: reaisToCents(input.deliveryFee),
       min_order_cents: reaisToCents(input.minOrder),
+      image_url: input.imageUrl,
     })
     .select('*')
     .single()
   if (error) throw error
   return data as StoreRow
+}
+
+export async function updateStoreImage(storeId: string, imageUrl: string | null): Promise<void> {
+  const { error } = await supabase.from('stores').update({ image_url: imageUrl }).eq('id', storeId)
+  if (error) throw error
 }
 
 export async function createCampaign(input: {

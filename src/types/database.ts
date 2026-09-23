@@ -56,6 +56,7 @@ export interface StoreRow {
   delivery_fee_cents: number
   min_order_cents: number
   is_open: boolean
+  image_url: string | null
   created_at: string
 }
 
@@ -80,6 +81,7 @@ export interface ProductRow {
   description: string
   price_cents: number
   emoji: string
+  image_url: string | null
   menu_category: string
   option_groups: ProductOptionGroupRow[]
   created_at: string

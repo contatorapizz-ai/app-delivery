@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import type { CartSelectedOption, Product, ProductOptionGroup } from '../types/domain'
 import { formatBRL } from '../lib/format'
 import { useCart } from '../context/CartContext'
+import MediaTile from './MediaTile'
 
 interface Props {
   product: Product
@@ -83,9 +84,13 @@ export default function AddToCartSheet({ product, onClose }: Props) {
         <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-neutral-200" />
 
         <div className="flex items-start gap-3">
-          <span className="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-brand-light text-2xl">
-            {product.emoji}
-          </span>
+          <MediaTile
+            src={product.imageUrl}
+            alt={product.name}
+            icon="🍽️"
+            className="h-14 w-14 shrink-0 rounded-xl"
+            iconClassName="text-xl"
+          />
           <div>
             <h3 className="font-bold text-neutral-900">{product.name}</h3>
             <p className="text-sm text-neutral-500">{product.description}</p>

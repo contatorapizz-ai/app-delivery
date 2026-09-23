@@ -19,6 +19,7 @@ export interface Store {
   isOpen: boolean
   whatsapp: string
   address: string
+  imageUrl: string | null
 }
 
 export interface ProductOptionChoice {
@@ -42,6 +43,7 @@ export interface Product {
   description: string
   price: number
   emoji: string
+  imageUrl: string | null
   menuCategory: string
   optionGroups?: ProductOptionGroup[]
 }

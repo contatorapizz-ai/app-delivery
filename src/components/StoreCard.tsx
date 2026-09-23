@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import type { Store } from '../types/domain'
 import { categoryMeta } from '../data/categories'
 import { formatBRL, formatEta } from '../lib/format'
+import MediaTile from './MediaTile'
 
 export default function StoreCard({ store }: { store: Store }) {
   const cat = categoryMeta(store.category)
@@ -14,11 +15,14 @@ export default function StoreCard({ store }: { store: Store }) {
         store.isOpen ? '' : 'pointer-events-none opacity-60'
       }`}
     >
-      <div
-        className={`flex h-24 items-center justify-center bg-gradient-to-br ${cat.gradient} text-5xl transition group-hover:scale-105 lg:h-32 lg:text-6xl`}
-      >
-        {cat.emoji}
-      </div>
+      <MediaTile
+        src={store.imageUrl}
+        alt={store.name}
+        icon={cat.emoji}
+        className="h-24 w-full lg:h-32"
+        imgClassName="transition duration-300 group-hover:scale-105"
+        iconClassName="text-4xl lg:text-5xl"
+      />
       <div className="p-3 lg:p-4">
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-semibold text-neutral-900 lg:text-lg">{store.name}</h3>
