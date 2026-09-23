@@ -1,15 +1,28 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { CATEGORIES } from '../data/categories'
 import StoreCard from '../components/StoreCard'
+import PromoCarousel from '../components/PromoCarousel'
 import BannerDestaque from '../components/ads/BannerDestaque'
 import StoryPremiumRow from '../components/ads/StoryPremiumRow'
 import ProdutoPatrocinado from '../components/ads/ProdutoPatrocinado'
 import { fetchStores } from '../data/api'
+import { CITY_CHANGED_EVENT, getSelectedCity } from '../lib/location'
 import type { Store, StoreCategory } from '../types/domain'
 
+type SortOption = 'relevancia' | 'avaliacao' | 'entrega' | 'taxa'
+
+const SORT_LABEL: Record<SortOption, string> = {
+  relevancia: 'Todos',
+  avaliacao: 'Mais avaliadas',
+  entrega: 'Menor tempo de entrega',
+  taxa: 'Menor taxa de entrega',
+}
+
 export default function HomePage() {
-  const [query, setQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState<StoreCategory | null>(null)
+  const [sort, setSort] = useState<SortOption>('relevancia')
+  const [city, setCity] = useState(getSelectedCity)
   const [stores, setStores] = useState<Store[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
@@ -31,51 +44,47 @@ export default function HomePage() {
     }
   }, [])
 
+  useEffect(() => {
+    function onCityChanged() {
+      setCity(getSelectedCity())
+    }
+    window.addEventListener(CITY_CHANGED_EVENT, onCityChanged)
+    return () => window.removeEventListener(CITY_CHANGED_EVENT, onCityChanged)
+  }, [])
+
   const filteredStores = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    return stores.filter((s) => {
-      const matchesQuery = q.length === 0 || s.name.toLowerCase().includes(q)
+    const list = stores.filter((s) => {
       const matchesCategory = !activeCategory || s.category === activeCategory
-      return matchesQuery && matchesCategory
+      const matchesCity = !s.city || s.city === city
+      return matchesCategory && matchesCity
     })
-  }, [stores, query, activeCategory])
+    const sorted = [...list]
+    if (sort === 'avaliacao') sorted.sort((a, b) => b.rating - a.rating)
+    else if (sort === 'entrega') sorted.sort((a, b) => a.etaMinutes[0] - b.etaMinutes[0])
+    else if (sort === 'taxa') sorted.sort((a, b) => a.deliveryFee - b.deliveryFee)
+    return sorted
+  }, [stores, activeCategory, city, sort])
 
   const openCount = stores.filter((s) => s.isOpen).length
 
   return (
     <div className="space-y-8">
-      <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-brand via-brand to-navy px-6 py-8 text-white shadow-lg shadow-navy/20 sm:px-10 sm:py-12">
-        <p className="text-sm font-semibold uppercase tracking-wide text-white/80">Rapizz Delivery</p>
-        <h1 className="mt-1 max-w-lg text-2xl font-extrabold leading-tight sm:text-3xl lg:text-4xl">
-          Peça comida das melhores lojas perto de você
-        </h1>
-        <p className="mt-2 max-w-md text-sm text-white/85 sm:text-base">
-          {openCount} lojas abertas agora · entrega rápida · pedido direto pelo WhatsApp
-        </p>
+      <Link
+        to="/busca"
+        className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-400 shadow-sm"
+      >
+        <span aria-hidden>🔍</span>
+        Buscar comidas, lojas ou produtos...
+      </Link>
 
-        <div className="mt-6 max-w-xl">
-          <label htmlFor="search" className="sr-only">
-            Buscar loja
-          </label>
-          <div className="flex items-center gap-2 rounded-xl bg-white px-4 py-3 shadow-sm">
-            <span aria-hidden className="text-neutral-400">🔍</span>
-            <input
-              id="search"
-              type="search"
-              inputMode="search"
-              placeholder="Buscar loja, ex: pizza, açaí..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="w-full bg-transparent text-sm text-neutral-900 outline-none placeholder:text-neutral-400"
-            />
-          </div>
-        </div>
-      </section>
+      <PromoCarousel />
 
       <StoryPremiumRow />
 
       <section>
-        <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-neutral-500">Categorias</h2>
+        <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-neutral-500">
+          Explore categorias · {openCount} lojas abertas agora
+        </h2>
         <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 lg:mx-0 lg:flex-wrap lg:px-0">
           <button
             onClick={() => setActiveCategory(null)}
@@ -85,7 +94,7 @@ export default function HomePage() {
                 : 'border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300'
             }`}
           >
-            Tudo
+            Todos
           </button>
           {CATEGORIES.map((c) => (
             <button
@@ -108,9 +117,22 @@ export default function HomePage() {
       <ProdutoPatrocinado />
 
       <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-base font-bold text-neutral-900">Lojas perto de você</h2>
-          {!loading && <span className="text-sm text-neutral-400">{filteredStores.length} encontradas</span>}
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-base font-bold text-neutral-900">Estabelecimentos</h2>
+          <label className="flex items-center gap-1.5 text-sm text-neutral-500">
+            Ordenar por:
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as SortOption)}
+              className="rounded-lg border border-neutral-200 bg-white px-2 py-1 text-sm font-semibold text-neutral-900 outline-none focus:border-brand"
+            >
+              {Object.entries(SORT_LABEL).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
         {loading ? (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
@@ -124,7 +146,7 @@ export default function HomePage() {
           </p>
         ) : filteredStores.length === 0 ? (
           <p className="rounded-xl border border-dashed border-neutral-300 py-16 text-center text-sm text-neutral-500">
-            Nenhuma loja encontrada para essa busca.
+            Nenhuma loja encontrada em {city} para essa categoria.
           </p>
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">

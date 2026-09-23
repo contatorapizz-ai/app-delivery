@@ -22,6 +22,7 @@ export function mapStore(row: StoreRow): Store {
     whatsapp: row.whatsapp,
     address: row.address,
     imageUrl: row.image_url,
+    city: row.city,
   }
 }
 

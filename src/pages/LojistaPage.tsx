@@ -16,6 +16,7 @@ import {
 import { fetchProductsByStore } from '../data/api'
 import { createProduct, deleteProduct, updateProduct } from '../data/products.api'
 import { CATEGORIES } from '../data/categories'
+import { CITIES, DEFAULT_CITY } from '../data/cities'
 import type { Product, StoreCategory } from '../types/domain'
 import { formatBRL } from '../lib/format'
 import { FORMAT_LABEL, LIVE_FORMATS, OBJECTIVE_LABEL, STATUS_COLOR, STATUS_LABEL } from '../lib/adLabels'
@@ -26,6 +27,7 @@ function CreateStoreForm({ onCreated }: { onCreated: (store: StoreRow) => void }
   const [name, setName] = useState('')
   const [category, setCategory] = useState<StoreCategory>(CATEGORIES[0].id)
   const [address, setAddress] = useState('')
+  const [city, setCity] = useState(DEFAULT_CITY)
   const [whatsapp, setWhatsapp] = useState('')
   const [deliveryFee, setDeliveryFee] = useState('')
   const [minOrder, setMinOrder] = useState('')
@@ -48,6 +50,7 @@ function CreateStoreForm({ onCreated }: { onCreated: (store: StoreRow) => void }
         deliveryFee: Number(deliveryFee) || 0,
         minOrder: Number(minOrder) || 0,
         imageUrl,
+        city,
       })
       // só promove quem ainda é 'cliente' (default) — nunca rebaixa admin/motoboy
       await supabase.from('profiles').update({ role: 'lojista' }).eq('id', session.user.id).eq('role', 'cliente')
@@ -92,6 +95,17 @@ function CreateStoreForm({ onCreated }: { onCreated: (store: StoreRow) => void }
           onChange={(e) => setAddress(e.target.value)}
           className="w-full rounded-lg border border-neutral-200 p-2.5 text-sm outline-none focus:border-brand"
         />
+        <select
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          className="w-full rounded-lg border border-neutral-200 p-2.5 text-sm outline-none focus:border-brand"
+        >
+          {CITIES.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
         <input
           required
           placeholder="WhatsApp (só números, com DDI)"

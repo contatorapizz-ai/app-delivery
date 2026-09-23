@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { categoryMeta } from '../../data/categories'
 import { fetchActiveCampaignsByFormat, trackAdEvent } from '../../data/ads.api'
 import { fetchStoreById } from '../../data/api'
+import MediaTile from '../MediaTile'
 import type { AdCampaignRow } from '../../types/database'
 import type { Store } from '../../types/domain'
 
@@ -51,11 +52,13 @@ export default function StoryPremiumRow() {
               onClick={() => trackAdEvent(campaign.id, 'clique')}
               className="flex shrink-0 flex-col items-center gap-1.5"
             >
-              <span
-                className={`grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br ${cat.gradient} text-2xl ring-2 ring-brand ring-offset-2`}
-              >
-                {cat.emoji}
-              </span>
+              <MediaTile
+                src={store.imageUrl}
+                alt={store.name}
+                icon={cat.emoji}
+                className="h-16 w-16 rounded-full ring-2 ring-brand ring-offset-2"
+                iconClassName="text-xl"
+              />
               <span className="max-w-16 truncate text-xs font-medium text-neutral-700">{store.name}</span>
             </Link>
           )

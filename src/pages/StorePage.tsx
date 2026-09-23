@@ -6,6 +6,7 @@ import { formatBRL, formatEta } from '../lib/format'
 import type { Product, Store } from '../types/domain'
 import AddToCartSheet from '../components/AddToCartSheet'
 import MediaTile from '../components/MediaTile'
+import FavoriteButton from '../components/FavoriteButton'
 import { useCart } from '../context/CartContext'
 
 export default function StorePage() {
@@ -80,7 +81,10 @@ export default function StorePage() {
         </div>
 
         <aside className="rounded-2xl border border-neutral-200 bg-white p-4 lg:sticky lg:top-24 lg:row-span-2">
-          <h1 className="text-xl font-extrabold text-neutral-900">{store.name}</h1>
+          <div className="flex items-start justify-between gap-2">
+            <h1 className="text-xl font-extrabold text-neutral-900">{store.name}</h1>
+            <FavoriteButton storeId={store.id} className="h-9 w-9 shrink-0 border border-neutral-200" />
+          </div>
           <p className="mt-0.5 text-sm text-neutral-500">{cat.label}</p>
           <p className="mt-2 text-sm text-neutral-600">{store.address}</p>
           <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-neutral-700">

@@ -1,10 +1,12 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import Logo from './Logo'
+import LocationBar from './LocationBar'
+import CartBar from './CartBar'
 import { AccountNavItemDesktop, AccountNavItemMobile } from './AccountNavItem'
 
 const mobileNavLinkClass = ({ isActive }: { isActive: boolean }) =>
-  `flex flex-col items-center gap-0.5 px-3 py-1.5 text-xs font-medium ${
+  `flex flex-col items-center gap-0.5 px-2 py-1.5 text-[11px] font-medium ${
     isActive ? 'text-brand' : 'text-neutral-500'
   }`
 
@@ -13,15 +15,11 @@ const desktopNavLinkClass = ({ isActive }: { isActive: boolean }) =>
     isActive ? 'bg-brand-light text-brand' : 'text-neutral-600 hover:bg-neutral-100'
   }`
 
-function CartBadge({ variant }: { variant: 'mobile' | 'desktop' }) {
+function CartBadge() {
   const { itemsCount } = useCart()
   if (itemsCount === 0) return null
   return (
-    <span
-      className={`absolute flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-bold text-white ${
-        variant === 'mobile' ? '-top-0.5 right-1' : '-right-1 -top-1'
-      }`}
-    >
+    <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-bold text-white">
       {itemsCount}
     </span>
   )
@@ -30,6 +28,8 @@ function CartBadge({ variant }: { variant: 'mobile' | 'desktop' }) {
 export default function Layout() {
   return (
     <div className="flex min-h-screen flex-col bg-neutral-50">
+      <LocationBar />
+
       <header className="sticky top-0 z-30 border-b border-neutral-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 lg:px-8">
           <NavLink to="/">
@@ -40,13 +40,22 @@ export default function Layout() {
             <NavLink to="/" end className={desktopNavLinkClass}>
               Início
             </NavLink>
+            <NavLink to="/shop" className={desktopNavLinkClass}>
+              Rapizz Shop
+            </NavLink>
+            <NavLink to="/busca" className={desktopNavLinkClass}>
+              Buscar
+            </NavLink>
             <NavLink to="/pedidos" className={desktopNavLinkClass}>
               Meus pedidos
+            </NavLink>
+            <NavLink to="/favoritos" className={desktopNavLinkClass}>
+              Favoritos
             </NavLink>
             <NavLink to="/carrinho" className={desktopNavLinkClass}>
               <span className="relative">
                 🛒 Carrinho
-                <CartBadge variant="desktop" />
+                <CartBadge />
               </span>
             </NavLink>
             <NavLink
@@ -73,9 +82,11 @@ export default function Layout() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 pt-5 lg:px-8 lg:pb-10">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-28 pt-5 lg:px-8 lg:pb-10">
         <Outlet />
       </main>
+
+      <CartBar />
 
       <nav
         className="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white lg:hidden"
@@ -86,16 +97,21 @@ export default function Layout() {
             <span className="text-xl leading-none">🏠</span>
             Início
           </NavLink>
-          <NavLink to="/carrinho" className={mobileNavLinkClass} aria-label="Carrinho">
-            <span className="relative text-xl leading-none">
-              🛒
-              <CartBadge variant="mobile" />
-            </span>
-            Carrinho
+          <NavLink to="/shop" className={mobileNavLinkClass}>
+            <span className="text-xl leading-none">▶️</span>
+            Rapizz Shop
+          </NavLink>
+          <NavLink to="/busca" className={mobileNavLinkClass}>
+            <span className="text-xl leading-none">🔍</span>
+            Busca
           </NavLink>
           <NavLink to="/pedidos" className={mobileNavLinkClass}>
             <span className="text-xl leading-none">📦</span>
             Pedidos
+          </NavLink>
+          <NavLink to="/favoritos" className={mobileNavLinkClass}>
+            <span className="text-xl leading-none">♡</span>
+            Favoritos
           </NavLink>
           <AccountNavItemMobile />
         </div>

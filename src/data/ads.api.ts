@@ -18,6 +18,7 @@ export async function createStore(input: {
   deliveryFee: number
   minOrder: number
   imageUrl: string | null
+  city: string | null
 }): Promise<StoreRow> {
   const { data, error } = await supabase
     .from('stores')
@@ -30,6 +31,7 @@ export async function createStore(input: {
       delivery_fee_cents: reaisToCents(input.deliveryFee),
       min_order_cents: reaisToCents(input.minOrder),
       image_url: input.imageUrl,
+      city: input.city,
     })
     .select('*')
     .single()

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchActiveCampaignsByFormat, trackAdEvent } from '../../data/ads.api'
 import { fetchStoreById, fetchProductsByStore } from '../../data/api'
+import MediaTile from '../MediaTile'
 import { formatBRL } from '../../lib/format'
 import type { AdCampaignRow } from '../../types/database'
 import type { Product, Store } from '../../types/domain'
@@ -62,9 +63,7 @@ export default function ProdutoPatrocinado() {
             onClick={() => trackAdEvent(campaign.id, 'clique')}
             className="flex w-40 shrink-0 flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition hover:shadow"
           >
-            <div className="flex h-20 items-center justify-center bg-brand-light text-3xl">
-              {product?.emoji ?? '⭐'}
-            </div>
+            <MediaTile src={product?.imageUrl} alt={product?.name ?? campaign.title} icon="⭐" className="h-20 w-full" iconClassName="text-2xl" />
             <div className="p-2.5">
               <p className="truncate text-sm font-semibold text-neutral-900">{product?.name ?? campaign.title}</p>
               <p className="truncate text-xs text-neutral-500">{store.name}</p>

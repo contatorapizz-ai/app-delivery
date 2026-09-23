@@ -57,6 +57,7 @@ export interface StoreRow {
   min_order_cents: number
   is_open: boolean
   image_url: string | null
+  city: string | null
   created_at: string
 }
 

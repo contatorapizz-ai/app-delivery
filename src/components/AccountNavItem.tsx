@@ -19,7 +19,7 @@ export function AccountNavItemMobile() {
       ) : (
         <span className="text-xl leading-none">👤</span>
       )}
-      Conta
+      Perfil
     </NavLink>
   )
 }

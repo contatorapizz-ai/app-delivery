@@ -1,12 +1,31 @@
 export type StoreCategory =
+  | 'lanche'
+  | 'cachorro_quente'
+  | 'pastel'
+  | 'esfiha'
   | 'pizza'
-  | 'hamburguer'
-  | 'japonesa'
+  | 'porcao'
+  | 'espetinho'
+  | 'doces_bebidas'
   | 'acai'
+  | 'sorvete'
+  | 'milkshake'
+  | 'pratinho'
+  | 'marmitex'
+  | 'restaurante'
+  | 'saudavel'
+  | 'padaria'
+  | 'japonesa'
+  | 'italiana'
   | 'mercado'
+  | 'hortifruti'
+  | 'emporios'
+  | 'distribuidora_doces'
+  | 'acougue'
+  | 'pet'
+  | 'suplementos'
   | 'farmacia'
-  | 'doces'
-  | 'brasileira'
+  | 'gas_agua'
 
 export interface Store {
   id: string
@@ -19,6 +38,7 @@ export interface Store {
   isOpen: boolean
   whatsapp: string
   address: string
+  city: string | null
   imageUrl: string | null
 }
 

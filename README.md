@@ -28,6 +28,23 @@ A partir do documento de visão enviado pelo cliente ("Rapizz Ads + Fundo Motobo
 
 **Promover um usuário a administrador** (não há UI para isso, por segurança): no SQL Editor do Supabase, `update profiles set role='admin' where id='<uuid do usuário>';`.
 
+## Paridade com o app publicado (segunda rodada)
+
+O cliente pediu paridade com telas do app publicado na Play Store. O que foi implementado:
+
+- **Favoritos**: coração em qualquer loja (card ou página da loja) salva/remove de `/favoritos`. Exige login; tabela `favorites` com RLS por dono.
+- **Categorias**: lista expandida para as ~27 categorias do app de referência (Lanche, Pastel, Esfiha, Porção, Espetinho, Açaí, Marmitex, Açougue, Comida Pet, Farmácia, Gás & Água etc.), em `src/data/categories.ts`.
+- **Busca dedicada** (`/busca`): buscas recentes (salvas no aparelho), sugestões populares, resultados por nome de loja.
+- **Ordenar por**: dropdown na Home (mais avaliadas, menor tempo de entrega, menor taxa).
+- **Localização**: barra fixa no topo com seletor de cidade (`src/data/cities.ts`) e status de login. Filtra a Home por cidade quando a loja tem `city` preenchido; lojas sem cidade definida continuam aparecendo pra não sumir com o catálogo atual.
+- **Conta**: tela reformulada com estado de visitante ("Olá, visitante!" + Entrar/Cadastrar) e menu (Meus Pedidos, Favoritos, Suporte Rapizz, Configurações, Sair).
+- **Suporte Rapizz** (`/suporte`): FAQ + botão de WhatsApp (ativa sozinho quando `VITE_SUPPORT_WHATSAPP` é configurado).
+- **Configurações** (`/configuracoes`): editar nome/telefone, preferência de notificações (local, sem push real ainda).
+- **Notificações** (`/notificacoes`): tela existe, mas é só um placeholder — não há push real implementado.
+- **Rapizz Shop** (`/shop`): vitrine com os produtos/lojas que têm campanha ativa no Rapizz Ads. **Importante:** a referência mostrada pelo cliente é uma vitrine de **vídeo ao vivo estilo live commerce** (like, comentários, compra em tempo real durante a transmissão) — isso é um projeto de infraestrutura à parte (streaming de vídeo, custo recorrente de banda/CDN, chat em tempo real) e não foi construído nesta rodada. O que existe hoje em `/shop` é uma vitrine real de destaques (sem vídeo, sem "AO VIVO" falso) — decidir se vale construir o live commerce de verdade é uma conversa de escopo e custo à parte com o cliente.
+
+Carrinho saiu do menu inferior (mobile) pra abrir espaço pros itens acima — quando há itens no carrinho, uma barra flutuante aparece por cima do menu com o total e leva direto pra `/carrinho`. Carrinho continua fixo no menu do desktop.
+
 ## Stack
 
 - React + TypeScript + Vite
