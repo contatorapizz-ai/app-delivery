@@ -1,22 +1,31 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { CITIES } from '../data/cities'
-import { useSelectedCity } from '../hooks/useSelectedCity'
+import { useMyAddress } from '../hooks/useMyAddress'
 
 export default function LocationBar() {
   const { session, profile } = useAuth()
-  const { city, setCity } = useSelectedCity()
+  const { address, setAddress } = useMyAddress()
   const [open, setOpen] = useState(false)
+  const [draft, setDraft] = useState(address)
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  async function selectCity(next: string) {
+  function handleOpen() {
+    setDraft(address)
+    setError(null)
+    setOpen(true)
+  }
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault()
     setSaving(true)
+    setError(null)
     try {
-      await setCity(next)
+      await setAddress(draft.trim())
       setOpen(false)
-    } catch {
-      // erro silencioso — o seletor continua aberto pra tentar de novo
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível salvar o endereço.')
     } finally {
       setSaving(false)
     }
@@ -25,9 +34,10 @@ export default function LocationBar() {
   return (
     <div className="border-b border-neutral-100 bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2 lg:px-8">
-        <button onClick={() => setOpen((v) => !v)} className="min-w-0 text-left">
+        <button onClick={handleOpen} className="min-w-0 text-left">
           <span className="flex items-center gap-1 text-sm font-bold text-navy">
-            📍 <span className="truncate">{city}</span> <span className="text-neutral-400">›</span>
+            📍 <span className="truncate">{address || 'Definir endereço'}</span>{' '}
+            <span className="text-neutral-400">›</span>
           </span>
           <span className="block text-xs text-neutral-400">
             {session ? `Olá, ${profile?.full_name?.split(' ')[0] || 'você'}` : 'entre ou cadastre-se'}
@@ -53,27 +63,30 @@ export default function LocationBar() {
       </div>
 
       {open && (
-        <div className="border-t border-neutral-100 px-4 py-2.5 lg:px-8">
-          <div className="flex flex-wrap gap-2">
-            {CITIES.map((c) => (
-              <button
-                key={c}
-                disabled={saving}
-                onClick={() => selectCity(c)}
-                className={`rounded-full border px-3 py-1 text-xs font-medium disabled:opacity-50 ${
-                  c === city ? 'border-brand bg-brand-light text-brand' : 'border-neutral-200 text-neutral-600'
-                }`}
-              >
-                {c}
-              </button>
-            ))}
+        <form onSubmit={handleSave} className="border-t border-neutral-100 px-4 py-2.5 lg:px-8">
+          <div className="flex gap-2">
+            <input
+              autoFocus
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              placeholder="Rua, número, bairro, cidade"
+              className="w-full rounded-lg border border-neutral-200 p-2 text-sm outline-none focus:border-brand"
+            />
+            <button
+              type="submit"
+              disabled={saving}
+              className="shrink-0 rounded-lg bg-brand px-4 text-sm font-bold text-white disabled:opacity-50"
+            >
+              {saving ? '...' : 'Salvar'}
+            </button>
           </div>
+          {error && <p className="mt-1.5 text-xs text-red-600">{error}</p>}
           {!session && (
-            <p className="mt-2 text-[11px] text-neutral-400">
-              Entre na sua conta pra salvar a cidade no seu perfil e ela valer em qualquer aparelho.
+            <p className="mt-1.5 text-[11px] text-neutral-400">
+              Entre na sua conta pra salvar o endereço no seu perfil e ele valer em qualquer aparelho.
             </p>
           )}
-        </div>
+        </form>
       )}
     </div>
   )

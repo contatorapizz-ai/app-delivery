@@ -1,23 +1,29 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import AuthForm from '../components/auth/AuthForm'
 import { supabase } from '../lib/supabase'
 import { readJSON, writeJSON } from '../lib/storage'
-import { CITIES } from '../data/cities'
-import { useSelectedCity } from '../hooks/useSelectedCity'
+import { useMyAddress } from '../hooks/useMyAddress'
 
 const NOTIFICATIONS_KEY = 'rapizz.notifications.v1'
 
 export default function SettingsPage() {
   const { session, profile, loading, refreshProfile } = useAuth()
-  const { city, setCity } = useSelectedCity()
+  const { address, setAddress } = useMyAddress()
   const [fullName, setFullName] = useState(profile?.full_name ?? '')
   const [phone, setPhone] = useState(profile?.phone ?? '')
+  const [addressDraft, setAddressDraft] = useState(address)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [notifications, setNotifications] = useState(() => readJSON(NOTIFICATIONS_KEY, true))
-  const [cityError, setCityError] = useState<string | null>(null)
+  const [addressSaving, setAddressSaving] = useState(false)
+  const [addressSaved, setAddressSaved] = useState(false)
+  const [addressError, setAddressError] = useState<string | null>(null)
+
+  useEffect(() => {
+    setAddressDraft(address)
+  }, [address])
 
   if (loading) return <div className="h-64 animate-pulse rounded-2xl bg-neutral-200" />
 
@@ -45,6 +51,21 @@ export default function SettingsPage() {
       setError(err instanceof Error ? err.message : 'Não foi possível salvar.')
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleSaveAddress(e: React.FormEvent) {
+    e.preventDefault()
+    setAddressSaving(true)
+    setAddressSaved(false)
+    setAddressError(null)
+    try {
+      await setAddress(addressDraft.trim())
+      setAddressSaved(true)
+    } catch (err) {
+      setAddressError(err instanceof Error ? err.message : 'Não foi possível salvar o endereço.')
+    } finally {
+      setAddressSaving(false)
     }
   }
 
@@ -93,31 +114,27 @@ export default function SettingsPage() {
         </button>
       </form>
 
-      <div className="rounded-2xl border border-neutral-200 bg-white p-4">
+      <form onSubmit={handleSaveAddress} className="rounded-2xl border border-neutral-200 bg-white p-4">
         <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-neutral-500">Localização</h2>
-        <select
-          value={city}
-          onChange={async (e) => {
-            setCityError(null)
-            try {
-              await setCity(e.target.value)
-            } catch (err) {
-              setCityError(err instanceof Error ? err.message : 'Não foi possível salvar a cidade.')
-            }
-          }}
+        <input
+          value={addressDraft}
+          onChange={(e) => setAddressDraft(e.target.value)}
+          placeholder="Rua, número, bairro, cidade"
           className="w-full rounded-lg border border-neutral-200 p-2.5 text-sm outline-none focus:border-brand"
-        >
-          {CITIES.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
-        {cityError && <p className="mt-1.5 text-xs text-red-600">{cityError}</p>}
+        />
+        {addressError && <p className="mt-1.5 text-xs text-red-600">{addressError}</p>}
+        {addressSaved && !addressError && <p className="mt-1.5 text-xs text-emerald-600">Salvo!</p>}
         <p className="mt-1.5 text-xs text-neutral-400">
           Salva no seu perfil e aparece no topo do app em qualquer aparelho que você entrar.
         </p>
-      </div>
+        <button
+          type="submit"
+          disabled={addressSaving}
+          className="mt-2 w-full rounded-full bg-brand py-2 text-sm font-bold text-white disabled:opacity-50"
+        >
+          {addressSaving ? 'Salvando...' : 'Salvar endereço'}
+        </button>
+      </form>
 
       <div className="rounded-2xl border border-neutral-200 bg-white p-4">
         <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-neutral-500">Preferências</h2>

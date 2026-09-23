@@ -7,7 +7,6 @@ import BannerDestaque from '../components/ads/BannerDestaque'
 import StoryPremiumRow from '../components/ads/StoryPremiumRow'
 import ProdutoPatrocinado from '../components/ads/ProdutoPatrocinado'
 import { fetchStores } from '../data/api'
-import { useSelectedCity } from '../hooks/useSelectedCity'
 import type { Store, StoreCategory } from '../types/domain'
 
 type SortOption = 'relevancia' | 'avaliacao' | 'entrega' | 'taxa'
@@ -22,7 +21,6 @@ const SORT_LABEL: Record<SortOption, string> = {
 export default function HomePage() {
   const [activeCategory, setActiveCategory] = useState<StoreCategory | null>(null)
   const [sort, setSort] = useState<SortOption>('relevancia')
-  const { city } = useSelectedCity()
   const [stores, setStores] = useState<Store[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
@@ -45,17 +43,13 @@ export default function HomePage() {
   }, [])
 
   const filteredStores = useMemo(() => {
-    const list = stores.filter((s) => {
-      const matchesCategory = !activeCategory || s.category === activeCategory
-      const matchesCity = !s.city || s.city === city
-      return matchesCategory && matchesCity
-    })
+    const list = activeCategory ? stores.filter((s) => s.category === activeCategory) : stores
     const sorted = [...list]
     if (sort === 'avaliacao') sorted.sort((a, b) => b.rating - a.rating)
     else if (sort === 'entrega') sorted.sort((a, b) => a.etaMinutes[0] - b.etaMinutes[0])
     else if (sort === 'taxa') sorted.sort((a, b) => a.deliveryFee - b.deliveryFee)
     return sorted
-  }, [stores, activeCategory, city, sort])
+  }, [stores, activeCategory, sort])
 
   const openCount = stores.filter((s) => s.isOpen).length
 
@@ -138,7 +132,7 @@ export default function HomePage() {
           </p>
         ) : filteredStores.length === 0 ? (
           <p className="rounded-xl border border-dashed border-neutral-300 py-16 text-center text-sm text-neutral-500">
-            Nenhuma loja encontrada em {city} para essa categoria.
+            Nenhuma loja encontrada para essa categoria.
           </p>
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">

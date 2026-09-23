@@ -24,7 +24,7 @@ export interface ProfileRow {
   full_name: string
   email: string | null
   phone: string | null
-  city: string | null
+  address: string | null
   created_at: string
 }
 

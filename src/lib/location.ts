@@ -1,14 +1,13 @@
-import { DEFAULT_CITY } from '../data/cities'
 import { readJSON, writeJSON } from './storage'
 
-const CITY_KEY = 'rapizz.city.v1'
-export const CITY_CHANGED_EVENT = 'rapizz:city-changed'
+const ADDRESS_KEY = 'rapizz.address.v1'
+export const ADDRESS_CHANGED_EVENT = 'rapizz:address-changed'
 
-export function getSelectedCity(): string {
-  return readJSON(CITY_KEY, DEFAULT_CITY)
+export function getLocalAddress(): string {
+  return readJSON(ADDRESS_KEY, '')
 }
 
-export function setSelectedCity(city: string): void {
-  writeJSON(CITY_KEY, city)
-  window.dispatchEvent(new Event(CITY_CHANGED_EVENT))
+export function setLocalAddress(address: string): void {
+  writeJSON(ADDRESS_KEY, address)
+  window.dispatchEvent(new Event(ADDRESS_CHANGED_EVENT))
 }
