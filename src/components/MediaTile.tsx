@@ -1,12 +1,12 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 
 interface MediaTileProps {
   src?: string | null
   alt: string
-  icon: string
+  icon: ReactNode
   className?: string
   imgClassName?: string
-  iconClassName?: string
+  iconWrapClassName?: string
 }
 
 export default function MediaTile({
@@ -15,7 +15,7 @@ export default function MediaTile({
   icon,
   className = '',
   imgClassName = '',
-  iconClassName = 'text-3xl',
+  iconWrapClassName = 'text-neutral-300',
 }: MediaTileProps) {
   const [broken, setBroken] = useState(false)
   const showImage = Boolean(src) && !broken
@@ -31,11 +31,7 @@ export default function MediaTile({
           onError={() => setBroken(true)}
         />
       ) : (
-        <div className={`grid h-full w-full place-items-center text-neutral-300 ${iconClassName}`}>
-          <span aria-hidden className="opacity-70">
-            {icon}
-          </span>
-        </div>
+        <div className={`grid h-full w-full place-items-center ${iconWrapClassName}`}>{icon}</div>
       )}
     </div>
   )

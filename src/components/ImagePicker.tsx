@@ -1,13 +1,12 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import { uploadImage } from '../lib/upload'
 import MediaTile from './MediaTile'
 
 interface ImagePickerProps {
   value: string | null
   onChange: (url: string | null) => void
-  icon: string
+  icon: ReactNode
   tileClassName?: string
-  iconClassName?: string
 }
 
 export default function ImagePicker({
@@ -15,7 +14,6 @@ export default function ImagePicker({
   onChange,
   icon,
   tileClassName = 'h-16 w-16 rounded-xl',
-  iconClassName = 'text-2xl',
 }: ImagePickerProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
@@ -39,7 +37,7 @@ export default function ImagePicker({
 
   return (
     <div className="flex items-center gap-3">
-      <MediaTile src={value} alt="Foto" icon={icon} className={`shrink-0 ${tileClassName}`} iconClassName={iconClassName} />
+      <MediaTile src={value} alt="Foto" icon={icon} className={`shrink-0 ${tileClassName}`} />
       <div className="min-w-0 flex-1 space-y-1">
         <div className="flex flex-wrap gap-2">
           <button

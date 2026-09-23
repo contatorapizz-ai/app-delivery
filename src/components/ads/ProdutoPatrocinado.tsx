@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Sparkles } from 'lucide-react'
 import { fetchActiveCampaignsByFormat, trackAdEvent } from '../../data/ads.api'
 import { fetchStoreById, fetchProductsByStore } from '../../data/api'
 import MediaTile from '../MediaTile'
@@ -63,7 +64,12 @@ export default function ProdutoPatrocinado() {
             onClick={() => trackAdEvent(campaign.id, 'clique')}
             className="flex w-40 shrink-0 flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition hover:shadow"
           >
-            <MediaTile src={product?.imageUrl} alt={product?.name ?? campaign.title} icon="⭐" className="h-20 w-full" iconClassName="text-2xl" />
+            <MediaTile
+              src={product?.imageUrl}
+              alt={product?.name ?? campaign.title}
+              icon={<Sparkles className="h-6 w-6 text-accent" strokeWidth={1.5} />}
+              className="h-20 w-full"
+            />
             <div className="p-2.5">
               <p className="truncate text-sm font-semibold text-neutral-900">{product?.name ?? campaign.title}</p>
               <p className="truncate text-xs text-neutral-500">{store.name}</p>

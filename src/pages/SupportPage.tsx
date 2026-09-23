@@ -1,3 +1,5 @@
+import { MessageCircle, Plus } from 'lucide-react'
+
 const FAQ: { question: string; answer: string }[] = [
   {
     question: 'Como acompanho meu pedido?',
@@ -36,7 +38,7 @@ export default function SupportPage() {
           rel="noreferrer"
           className="flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 py-3.5 text-sm font-bold text-white shadow-sm"
         >
-          💬 Falar no WhatsApp
+          <MessageCircle className="h-4 w-4" /> Falar no WhatsApp
         </a>
       ) : (
         <p className="rounded-xl bg-amber-50 px-4 py-3 text-xs text-amber-700">
@@ -53,7 +55,7 @@ export default function SupportPage() {
             <summary className="cursor-pointer list-none text-sm font-semibold text-neutral-900 marker:content-none">
               <span className="flex items-center justify-between gap-2">
                 {item.question}
-                <span className="text-neutral-300 transition group-open:rotate-45">＋</span>
+                <Plus className="h-4 w-4 shrink-0 text-neutral-300 transition group-open:rotate-45" />
               </span>
             </summary>
             <p className="mt-2 text-sm text-neutral-600">{item.answer}</p>

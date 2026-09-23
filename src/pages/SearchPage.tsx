@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ArrowLeft, Clock, Search, X } from 'lucide-react'
 import StoreCard from '../components/StoreCard'
 import { fetchStores } from '../data/api'
 import { readJSON, writeJSON } from '../lib/storage'
@@ -67,12 +68,10 @@ export default function SearchPage() {
           aria-label="Voltar"
           className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-neutral-100 text-neutral-600"
         >
-          ←
+          <ArrowLeft className="h-4 w-4" />
         </button>
         <div className="flex flex-1 items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2.5">
-          <span aria-hidden className="text-neutral-400">
-            🔍
-          </span>
+          <Search className="h-4 w-4 shrink-0 text-neutral-400" aria-hidden />
           <input
             autoFocus
             value={query}
@@ -121,9 +120,7 @@ export default function SearchPage() {
                       onClick={() => commitSearch(term)}
                       className="flex items-center gap-2 text-sm text-neutral-700"
                     >
-                      <span aria-hidden className="text-neutral-400">
-                        🕐
-                      </span>
+                      <Clock className="h-4 w-4 text-neutral-400" aria-hidden />
                       {term}
                     </button>
                     <button
@@ -131,7 +128,7 @@ export default function SearchPage() {
                       aria-label={`Remover ${term}`}
                       className="text-neutral-300 hover:text-neutral-500"
                     >
-                      ✕
+                      <X className="h-4 w-4" />
                     </button>
                   </div>
                 ))}

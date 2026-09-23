@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import { User } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
 export function AccountNavItemMobile() {
@@ -13,11 +14,11 @@ export function AccountNavItemMobile() {
       }
     >
       {session ? (
-        <span className="grid h-5 w-5 place-items-center rounded-full bg-gradient-to-br from-brand to-navy text-[10px] font-bold text-white">
+        <span className="grid h-5 w-5 place-items-center rounded-full bg-gradient-to-br from-brand to-accent text-[10px] font-bold text-white">
           {initial}
         </span>
       ) : (
-        <span className="text-xl leading-none">👤</span>
+        <User className="h-5 w-5" strokeWidth={1.75} />
       )}
       Perfil
     </NavLink>
@@ -39,13 +40,15 @@ export function AccountNavItemDesktop() {
     >
       {session ? (
         <>
-          <span className="grid h-6 w-6 place-items-center rounded-full bg-gradient-to-br from-brand to-navy text-xs font-bold text-white">
+          <span className="grid h-6 w-6 place-items-center rounded-full bg-gradient-to-br from-brand to-accent text-xs font-bold text-white">
             {initial}
           </span>
           <span className="max-w-32 truncate">{profile?.full_name || session.user.email}</span>
         </>
       ) : (
-        <>👤 Entrar</>
+        <>
+          <User className="h-4 w-4" strokeWidth={1.75} /> Entrar
+        </>
       )}
     </NavLink>
   )

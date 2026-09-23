@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { MailCheck } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
 export default function AuthForm({
@@ -35,7 +36,7 @@ export default function AuthForm({
   if (signupDone) {
     return (
       <div className="mx-auto max-w-sm space-y-2 rounded-2xl border border-neutral-200 bg-white p-6 text-center">
-        <span className="text-3xl">📬</span>
+        <MailCheck className="mx-auto h-8 w-8 text-brand" strokeWidth={1.5} />
         <h1 className="text-lg font-bold text-neutral-900">Confira seu e-mail</h1>
         <p className="text-sm text-neutral-500">
           Se o seu cadastro pedir confirmação, enviamos um link para <strong>{email}</strong>. Depois de confirmar

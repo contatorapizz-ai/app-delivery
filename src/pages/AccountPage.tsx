@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { ChevronRight, HelpCircle, Heart, LogOut, Megaphone, Package, Settings, User, Wrench } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import AuthForm from '../components/auth/AuthForm'
 
@@ -10,15 +11,17 @@ const ROLE_LABEL: Record<string, string> = {
   admin: 'Administrador',
 }
 
-function MenuLink({ to, icon, label }: { to: string; icon: string; label: string }) {
+function MenuLink({ to, icon, label }: { to: string; icon: ReactNode; label: string }) {
   return (
     <Link
       to={to}
       className="flex items-center gap-3 rounded-xl px-4 py-3.5 text-sm font-medium text-neutral-800 hover:bg-neutral-50"
     >
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-neutral-100 text-base">{icon}</span>
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-neutral-100 text-neutral-600">
+        {icon}
+      </span>
       <span className="flex-1">{label}</span>
-      <span className="text-neutral-300">›</span>
+      <ChevronRight className="h-4 w-4 text-neutral-300" />
     </Link>
   )
 }
@@ -41,10 +44,10 @@ export default function AccountPage() {
 
   return (
     <div className="mx-auto max-w-md space-y-4">
-      <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-navy to-brand p-5 text-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-navy via-brand to-accent p-5 text-white shadow-sm">
         <div className="flex items-center gap-4">
           <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-white/15 text-xl font-bold">
-            {session ? initial : '👤'}
+            {session ? initial : <User className="h-6 w-6" strokeWidth={1.75} />}
           </span>
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-lg font-bold">
@@ -60,7 +63,7 @@ export default function AccountPage() {
             ) : (
               <button
                 onClick={() => setShowAuth((v) => !v)}
-                className="mt-1.5 rounded-full bg-accent px-4 py-1.5 text-xs font-bold text-white"
+                className="mt-1.5 rounded-full bg-white px-4 py-1.5 text-xs font-bold text-brand"
               >
                 Entrar / Cadastrar
               </button>
@@ -75,21 +78,24 @@ export default function AccountPage() {
 
       <div className="divide-y divide-neutral-100 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
         {session && (role === 'lojista' || role === 'admin') && (
-          <MenuLink to="/anunciar" icon="📣" label="Rapizz Ads — minhas campanhas" />
+          <MenuLink to="/anunciar" icon={<Megaphone className="h-4 w-4" />} label="Rapizz Ads — minhas campanhas" />
         )}
-        {session && role === 'admin' && <MenuLink to="/admin" icon="🛠️" label="Painel administrativo" />}
-        <MenuLink to="/pedidos" icon="📦" label="Meus Pedidos" />
-        <MenuLink to="/favoritos" icon="♡" label="Favoritos" />
-        <MenuLink to="/suporte" icon="❓" label="Suporte Rapizz" />
-        <MenuLink to="/configuracoes" icon="⚙️" label="Configurações" />
+        {session && role === 'admin' && (
+          <MenuLink to="/admin" icon={<Wrench className="h-4 w-4" />} label="Painel administrativo" />
+        )}
+        <MenuLink to="/pedidos" icon={<Package className="h-4 w-4" />} label="Meus Pedidos" />
+        <MenuLink to="/favoritos" icon={<Heart className="h-4 w-4" />} label="Favoritos" />
+        <MenuLink to="/suporte" icon={<HelpCircle className="h-4 w-4" />} label="Suporte Rapizz" />
+        <MenuLink to="/configuracoes" icon={<Settings className="h-4 w-4" />} label="Configurações" />
       </div>
 
       {session && (
         <button
           onClick={handleSignOut}
           disabled={signingOut}
-          className="w-full rounded-full border border-red-200 py-2.5 text-sm font-bold text-red-600 disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-2 rounded-full border border-red-200 py-2.5 text-sm font-bold text-red-600 disabled:opacity-50"
         >
+          <LogOut className="h-4 w-4" />
           {signingOut ? 'Saindo...' : 'Sair da conta'}
         </button>
       )}

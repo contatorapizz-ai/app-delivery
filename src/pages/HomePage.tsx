@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Search } from 'lucide-react'
 import { CATEGORIES } from '../data/categories'
 import StoreCard from '../components/StoreCard'
 import PromoCarousel from '../components/PromoCarousel'
@@ -59,7 +60,7 @@ export default function HomePage() {
         to="/busca"
         className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-400 shadow-sm"
       >
-        <span aria-hidden>🔍</span>
+        <Search className="h-4 w-4" aria-hidden />
         Buscar comidas, lojas ou produtos...
       </Link>
 
@@ -86,13 +87,14 @@ export default function HomePage() {
             <button
               key={c.id}
               onClick={() => setActiveCategory(c.id === activeCategory ? null : c.id)}
-              className={`shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition ${
+              className={`flex shrink-0 items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium transition ${
                 activeCategory === c.id
                   ? 'border-brand bg-brand text-white'
                   : 'border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300'
               }`}
             >
-              {c.emoji} {c.label}
+              <c.icon className="h-4 w-4" strokeWidth={1.75} />
+              {c.label}
             </button>
           ))}
         </div>

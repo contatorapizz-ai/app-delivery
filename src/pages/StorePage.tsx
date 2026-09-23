@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
+import { ArrowLeft, Bike, Clock, Plus, Receipt, Star, UtensilsCrossed } from 'lucide-react'
 import { fetchProductsByStore, fetchStoreById } from '../data/api'
 import { categoryMeta } from '../data/categories'
 import { formatBRL, formatEta } from '../lib/format'
@@ -51,6 +52,7 @@ export default function StorePage() {
   if (store === null) return <Navigate to="/" replace />
 
   const cat = categoryMeta(store.category)
+  const CatIcon = cat.icon
 
   function handleSelectProduct(product: Product) {
     if (cartStoreId && cartStoreId !== product.storeId) {
@@ -65,8 +67,8 @@ export default function StorePage() {
 
   return (
     <div className="space-y-5">
-      <Link to="/" className="text-sm text-neutral-500 hover:text-neutral-700">
-        ← Voltar
+      <Link to="/" className="flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-700">
+        <ArrowLeft className="h-4 w-4" /> Voltar
       </Link>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
@@ -74,9 +76,8 @@ export default function StorePage() {
           <MediaTile
             src={store.imageUrl}
             alt={store.name}
-            icon={cat.emoji}
+            icon={<CatIcon className="h-14 w-14 lg:h-16 lg:w-16" strokeWidth={1.5} />}
             className="h-32 w-full rounded-2xl lg:h-44"
-            iconClassName="text-5xl lg:text-6xl"
           />
         </div>
 
@@ -88,10 +89,18 @@ export default function StorePage() {
           <p className="mt-0.5 text-sm text-neutral-500">{cat.label}</p>
           <p className="mt-2 text-sm text-neutral-600">{store.address}</p>
           <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-neutral-700">
-            <span className="rounded-lg bg-neutral-50 px-2.5 py-2">⭐ {store.rating.toFixed(1)} avaliação</span>
-            <span className="rounded-lg bg-neutral-50 px-2.5 py-2">⏱ {formatEta(store.etaMinutes)}</span>
-            <span className="rounded-lg bg-neutral-50 px-2.5 py-2">🛵 {formatBRL(store.deliveryFee)}</span>
-            <span className="rounded-lg bg-neutral-50 px-2.5 py-2">🧾 mín. {formatBRL(store.minOrder)}</span>
+            <span className="flex items-center gap-1.5 rounded-lg bg-neutral-50 px-2.5 py-2">
+              <Star className="h-4 w-4 fill-accent text-accent" /> {store.rating.toFixed(1)}
+            </span>
+            <span className="flex items-center gap-1.5 rounded-lg bg-neutral-50 px-2.5 py-2">
+              <Clock className="h-4 w-4 text-neutral-400" /> {formatEta(store.etaMinutes)}
+            </span>
+            <span className="flex items-center gap-1.5 rounded-lg bg-neutral-50 px-2.5 py-2">
+              <Bike className="h-4 w-4 text-neutral-400" /> {formatBRL(store.deliveryFee)}
+            </span>
+            <span className="flex items-center gap-1.5 rounded-lg bg-neutral-50 px-2.5 py-2">
+              <Receipt className="h-4 w-4 text-neutral-400" /> mín. {formatBRL(store.minOrder)}
+            </span>
           </div>
           {!store.isOpen && (
             <p className="mt-3 rounded-lg bg-neutral-100 px-3 py-2 text-sm font-medium text-neutral-600">
@@ -115,9 +124,8 @@ export default function StorePage() {
                     <MediaTile
                       src={product.imageUrl}
                       alt={product.name}
-                      icon="🍽️"
+                      icon={<UtensilsCrossed className="h-5 w-5" strokeWidth={1.5} />}
                       className="h-12 w-12 shrink-0 rounded-lg"
-                      iconClassName="text-lg"
                     />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-semibold text-neutral-900">{product.name}</span>
@@ -126,7 +134,7 @@ export default function StorePage() {
                         {formatBRL(product.price)}
                       </span>
                     </span>
-                    <span aria-hidden className="text-xl text-neutral-300">＋</span>
+                    <Plus className="h-5 w-5 shrink-0 text-neutral-300" aria-hidden />
                   </button>
                 ))}
               </div>

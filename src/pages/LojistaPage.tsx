@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Store, UtensilsCrossed } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import AuthForm from '../components/auth/AuthForm'
@@ -85,7 +86,7 @@ function CreateStoreForm({ onCreated }: { onCreated: (store: StoreRow) => void }
         >
           {CATEGORIES.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.emoji} {c.label}
+              {c.label}
             </option>
           ))}
         </select>
@@ -139,9 +140,8 @@ function CreateStoreForm({ onCreated }: { onCreated: (store: StoreRow) => void }
         <ImagePicker
           value={imageUrl}
           onChange={setImageUrl}
-          icon="🏪"
+          icon={<Store className="h-6 w-6" strokeWidth={1.5} />}
           tileClassName="h-14 w-14 rounded-lg"
-          iconClassName="text-lg"
         />
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button
@@ -398,9 +398,8 @@ function StoreImageEditor({ store, onUpdated }: { store: StoreRow; onUpdated: (u
       <ImagePicker
         value={store.image_url}
         onChange={handleChange}
-        icon="🏪"
+        icon={<Store className="h-7 w-7" strokeWidth={1.5} />}
         tileClassName="h-16 w-16 rounded-xl"
-        iconClassName="text-2xl"
       />
       {saving && <p className="mt-1.5 text-xs text-neutral-400">Salvando...</p>}
       {error && <p className="mt-1.5 text-xs text-red-600">{error}</p>}
@@ -494,9 +493,8 @@ function ProductForm({ storeId, onCreated }: { storeId: string; onCreated: () =>
       <ImagePicker
         value={imageUrl}
         onChange={setImageUrl}
-        icon="🍽️"
+        icon={<UtensilsCrossed className="h-5 w-5" strokeWidth={1.5} />}
         tileClassName="h-14 w-14 rounded-lg"
-        iconClassName="text-lg"
       />
       {error && <p className="text-sm text-red-600">{error}</p>}
       <div className="flex gap-2">
@@ -566,9 +564,8 @@ function ProductRow({ product, onChanged }: { product: Product; onChanged: () =>
         <MediaTile
           src={product.imageUrl}
           alt={product.name}
-          icon="🍽️"
+          icon={<UtensilsCrossed className="h-5 w-5" strokeWidth={1.5} />}
           className="h-12 w-12 shrink-0 rounded-lg"
-          iconClassName="text-lg"
         />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-neutral-900">{product.name}</p>
@@ -623,9 +620,8 @@ function ProductRow({ product, onChanged }: { product: Product; onChanged: () =>
       <ImagePicker
         value={imageUrl}
         onChange={setImageUrl}
-        icon="🍽️"
+        icon={<UtensilsCrossed className="h-4 w-4" strokeWidth={1.5} />}
         tileClassName="h-12 w-12 rounded-lg"
-        iconClassName="text-base"
       />
       {error && <p className="text-xs text-red-600">{error}</p>}
       <div className="flex gap-2">

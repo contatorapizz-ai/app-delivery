@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { Package } from 'lucide-react'
 import { useOrders } from '../context/OrdersContext'
 import { formatBRL } from '../lib/format'
 import type { OrderStatus } from '../types/domain'
@@ -25,7 +26,7 @@ export default function OrdersPage() {
   if (orders.length === 0) {
     return (
       <div className="flex flex-col items-center gap-3 py-16 text-center">
-        <span className="text-5xl">📦</span>
+        <Package className="h-12 w-12 text-neutral-300" strokeWidth={1.5} />
         <h1 className="text-lg font-bold text-neutral-900">Nenhum pedido ainda</h1>
         <p className="text-sm text-neutral-500">Seus pedidos aparecerão aqui após a finalização.</p>
         <Link to="/" className="mt-2 rounded-full bg-brand px-5 py-2.5 text-sm font-bold text-white">

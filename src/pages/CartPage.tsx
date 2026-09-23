@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { Minus, Plus, ShoppingCart } from 'lucide-react'
 import { useCart } from '../context/CartContext'
 import { useOrders } from '../context/OrdersContext'
 import { createOrder, fetchStoreById } from '../data/api'
@@ -114,7 +115,7 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center gap-3 py-16 text-center">
-        <span className="text-5xl">🛒</span>
+        <ShoppingCart className="h-12 w-12 text-neutral-300" strokeWidth={1.5} />
         <h1 className="text-lg font-bold text-neutral-900">Seu carrinho está vazio</h1>
         <p className="text-sm text-neutral-500">Adicione itens de uma loja para continuar.</p>
         <Link to="/" className="mt-2 rounded-full bg-brand px-5 py-2.5 text-sm font-bold text-white">
@@ -153,17 +154,17 @@ export default function CartPage() {
                     <button
                       aria-label="Diminuir"
                       onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                      className="text-lg font-bold text-neutral-600"
+                      className="text-neutral-600"
                     >
-                      −
+                      <Minus className="h-4 w-4" />
                     </button>
                     <span className="w-5 text-center text-sm font-semibold">{item.quantity}</span>
                     <button
                       aria-label="Aumentar"
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      className="text-lg font-bold text-neutral-600"
+                      className="text-neutral-600"
                     >
-                      +
+                      <Plus className="h-4 w-4" />
                     </button>
                   </div>
                   <button onClick={() => removeItem(item.id)} className="text-xs font-medium text-neutral-400">

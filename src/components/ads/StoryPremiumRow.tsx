@@ -55,9 +55,8 @@ export default function StoryPremiumRow() {
               <MediaTile
                 src={store.imageUrl}
                 alt={store.name}
-                icon={cat.emoji}
-                className="h-16 w-16 rounded-full ring-2 ring-brand ring-offset-2"
-                iconClassName="text-xl"
+                icon={<cat.icon className="h-7 w-7" strokeWidth={1.5} />}
+                className="h-16 w-16 rounded-full ring-2 ring-accent ring-offset-2"
               />
               <span className="max-w-16 truncate text-xs font-medium text-neutral-700">{store.name}</span>
             </Link>

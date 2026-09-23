@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Bell, ChevronRight, MapPin, MessageCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useMyAddress } from '../hooks/useMyAddress'
 
@@ -36,8 +37,9 @@ export default function LocationBar() {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2 lg:px-8">
         <button onClick={handleOpen} className="min-w-0 text-left">
           <span className="flex items-center gap-1 text-sm font-bold text-navy">
-            📍 <span className="truncate">{address || 'Definir endereço'}</span>{' '}
-            <span className="text-neutral-400">›</span>
+            <MapPin className="h-4 w-4 shrink-0 text-brand" />
+            <span className="truncate">{address || 'Definir endereço'}</span>
+            <ChevronRight className="h-3.5 w-3.5 shrink-0 text-neutral-400" />
           </span>
           <span className="block text-xs text-neutral-400">
             {session ? `Olá, ${profile?.full_name?.split(' ')[0] || 'você'}` : 'entre ou cadastre-se'}
@@ -50,14 +52,14 @@ export default function LocationBar() {
             aria-label="Suporte"
             className="grid h-9 w-9 place-items-center rounded-full bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
           >
-            💬
+            <MessageCircle className="h-4 w-4" />
           </Link>
           <Link
             to="/notificacoes"
             aria-label="Notificações"
             className="grid h-9 w-9 place-items-center rounded-full bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
           >
-            🔔
+            <Bell className="h-4 w-4" />
           </Link>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { Heart, MessageCircle, Send, Share2, Sparkles, Star, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import MediaTile from '../components/MediaTile'
 import { trackAdEvent } from '../data/ads.api'
@@ -37,7 +38,9 @@ function ShareButton({ item }: { item: ShowcaseItem }) {
 
   return (
     <button onClick={handleShare} className="flex flex-col items-center gap-0.5 text-white">
-      <span className="grid h-11 w-11 place-items-center rounded-full bg-black/30 text-xl backdrop-blur">🔗</span>
+      <span className="grid h-11 w-11 place-items-center rounded-full bg-black/30 backdrop-blur">
+        <Share2 className="h-5 w-5" />
+      </span>
       <span className="text-[11px] font-semibold">Partilhar</span>
     </button>
   )
@@ -80,7 +83,7 @@ function CommentsSheet({ campaignId, onClose }: { campaignId: string; onClose: (
         <div className="flex items-center justify-between px-4 py-3">
           <h3 className="font-bold text-neutral-900">Comentários</h3>
           <button onClick={onClose} className="text-neutral-400" aria-label="Fechar">
-            ✕
+            <X className="h-5 w-5" />
           </button>
         </div>
         <div className="max-h-[40vh] space-y-3 overflow-y-auto px-4 pb-3">
@@ -111,9 +114,10 @@ function CommentsSheet({ campaignId, onClose }: { campaignId: string; onClose: (
           <button
             type="submit"
             disabled={!session || sending || !body.trim()}
-            className="rounded-full bg-brand px-4 py-2 text-sm font-bold text-white disabled:opacity-40"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand text-white disabled:opacity-40"
+            aria-label="Enviar comentário"
           >
-            Enviar
+            <Send className="h-4 w-4" />
           </button>
         </form>
       </div>
@@ -149,15 +153,14 @@ function ShopCard({
         <MediaTile
           src={product?.imageUrl ?? store.imageUrl}
           alt={product?.name ?? campaign.title}
-          icon="⭐"
+          icon={<Sparkles className="h-10 w-10 text-accent" strokeWidth={1.5} />}
           className="h-full w-full"
-          iconClassName="text-5xl"
         />
       )}
 
       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-4 pt-16 text-white">
-        <p className="text-xs font-semibold uppercase tracking-wide text-white/70">
-          {store.name} · ⭐ {store.rating.toFixed(1)}
+        <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-white/70">
+          {store.name} · <Star className="h-3 w-3 fill-accent text-accent" /> {store.rating.toFixed(1)}
         </p>
         <h3 className="mt-1 text-lg font-extrabold leading-snug">{product?.name ?? campaign.title}</h3>
         {(product?.description || campaign.description) && (
@@ -177,13 +180,15 @@ function ShopCard({
 
       <div className="absolute right-3 top-1/2 flex -translate-y-1/2 flex-col items-center gap-4">
         <button onClick={onToggleLike} className="flex flex-col items-center gap-0.5 text-white">
-          <span className="grid h-11 w-11 place-items-center rounded-full bg-black/30 text-xl backdrop-blur">
-            {engagement.likedByMe ? '❤️' : '🤍'}
+          <span className="grid h-11 w-11 place-items-center rounded-full bg-black/30 backdrop-blur">
+            <Heart className={`h-5 w-5 ${engagement.likedByMe ? 'fill-brand text-brand' : ''}`} />
           </span>
           <span className="text-[11px] font-semibold">{engagement.likeCount}</span>
         </button>
         <button onClick={() => setShowComments(true)} className="flex flex-col items-center gap-0.5 text-white">
-          <span className="grid h-11 w-11 place-items-center rounded-full bg-black/30 text-xl backdrop-blur">💬</span>
+          <span className="grid h-11 w-11 place-items-center rounded-full bg-black/30 backdrop-blur">
+            <MessageCircle className="h-5 w-5" />
+          </span>
           <span className="text-[11px] font-semibold">{engagement.commentCount}</span>
         </button>
         <ShareButton item={item} />

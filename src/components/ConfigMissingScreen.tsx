@@ -1,8 +1,10 @@
+import { Settings } from 'lucide-react'
+
 export default function ConfigMissingScreen() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-6">
       <div className="max-w-md space-y-3 rounded-2xl border border-neutral-200 bg-white p-6 text-center">
-        <span className="text-4xl">⚙️</span>
+        <Settings className="mx-auto h-9 w-9 text-neutral-300" strokeWidth={1.5} />
         <h1 className="text-lg font-bold text-neutral-900">Configuração pendente</h1>
         <p className="text-sm text-neutral-600">
           Este app precisa das variáveis de ambiente <code className="rounded bg-neutral-100 px-1">VITE_SUPABASE_URL</code> e{' '}

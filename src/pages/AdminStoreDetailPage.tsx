@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { fetchAdminStoreDetail, type AdminStoreDetail } from '../data/ads.api'
 import { deleteAccount, deleteStore } from '../data/adminUsers.api'
@@ -45,6 +46,7 @@ export default function AdminStoreDetailPage() {
 
   const { store, owner, campaigns } = detail
   const cat = categoryMeta(store.category as StoreCategory)
+  const CatIcon = cat.icon
 
   async function handleDeleteStore() {
     if (!confirm(`Excluir a loja "${store.name}" e todas as campanhas dela? Essa ação não pode ser desfeita.`)) return
@@ -81,15 +83,15 @@ export default function AdminStoreDetailPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <Link to="/admin" className="text-sm text-neutral-500 hover:text-neutral-700">
-        ← Voltar ao painel
+      <Link to="/admin" className="flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-700">
+        <ArrowLeft className="h-4 w-4" /> Voltar ao painel
       </Link>
 
       <div className="flex items-center gap-4 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
         <span
-          className={`grid h-16 w-16 shrink-0 place-items-center rounded-full bg-gradient-to-br ${cat.gradient} text-3xl`}
+          className={`grid h-16 w-16 shrink-0 place-items-center rounded-full bg-gradient-to-br ${cat.gradient} text-white`}
         >
-          {cat.emoji}
+          <CatIcon className="h-7 w-7" strokeWidth={1.5} />
         </span>
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-xl font-extrabold text-neutral-900">{store.name}</h1>

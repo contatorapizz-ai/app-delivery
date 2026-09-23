@@ -52,6 +52,7 @@ Carrinho saiu do menu inferior (mobile) pra abrir espaço pros itens acima — q
 - React Router
 - **Supabase** (Postgres + Auth + RLS) — lojas, produtos, pedidos, perfis, carteiras, campanhas de anúncio e ledger do fundo
 - `vite-plugin-pwa` (service worker, manifest, ícones, fallback offline)
+- `lucide-react` — ícones vetoriais em todo o app (nenhum emoji usado como ícone de interface; a única exceção são `<option>` de `<select>`, que o HTML não permite renderizar ícone)
 
 ## Rodando localmente
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Bike, Clock, Heart, Star } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import AuthForm from '../components/auth/AuthForm'
 import FavoriteButton from '../components/FavoriteButton'
@@ -39,8 +40,9 @@ export default function FavoritesPage() {
       {stores === null && !error && <div className="h-24 animate-pulse rounded-2xl bg-neutral-200" />}
 
       {stores && stores.length === 0 && (
-        <p className="rounded-xl border border-dashed border-neutral-300 py-16 text-center text-sm text-neutral-500">
-          Você ainda não favoritou nenhuma loja. Toque no ♡ em uma loja para salvá-la aqui.
+        <p className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-neutral-300 py-16 text-center text-sm text-neutral-500">
+          <Heart className="h-6 w-6 text-neutral-300" />
+          Você ainda não favoritou nenhuma loja. Toque no coração em uma loja para salvá-la aqui.
         </p>
       )}
 
@@ -48,6 +50,7 @@ export default function FavoritesPage() {
         <div className="space-y-2.5">
           {stores.map((store) => {
             const cat = categoryMeta(store.category)
+            const CatIcon = cat.icon
             return (
               <div
                 key={store.id}
@@ -57,17 +60,22 @@ export default function FavoritesPage() {
                   <MediaTile
                     src={store.imageUrl}
                     alt={store.name}
-                    icon={cat.emoji}
+                    icon={<CatIcon className="h-6 w-6" strokeWidth={1.5} />}
                     className="h-14 w-14 shrink-0 rounded-full"
-                    iconClassName="text-xl"
                   />
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-semibold text-neutral-900">{store.name}</p>
                     <p className="truncate text-sm text-neutral-500">{cat.label}</p>
                     <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-neutral-600">
-                      <span>⏱ {formatEta(store.etaMinutes)}</span>
-                      <span>⭐ {store.rating.toFixed(1)}</span>
-                      <span>🛵 {formatBRL(store.deliveryFee)}</span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3.5 w-3.5 text-neutral-400" /> {formatEta(store.etaMinutes)}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Star className="h-3.5 w-3.5 fill-accent text-accent" /> {store.rating.toFixed(1)}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Bike className="h-3.5 w-3.5 text-neutral-400" /> {formatBRL(store.deliveryFee)}
+                      </span>
                     </div>
                   </div>
                 </Link>

@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { Bike, Building2, ChevronRight, Lock, Megaphone, Plus, Wallet } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { fetchAdminClientOverview, fetchAdminTotals, type AdminClientOverviewRow, type AdminTotals } from '../data/ads.api'
 import { createLojista } from '../data/adminUsers.api'
@@ -7,11 +8,11 @@ import { categoryMeta } from '../data/categories'
 import { formatBRL } from '../lib/format'
 import type { StoreCategory } from '../types/domain'
 
-function StatCard({ icon, label, value }: { icon: string; label: string; value: string }) {
+function StatCard({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
       <div className="flex items-center gap-2 text-xs font-medium text-neutral-500">
-        <span className="text-base">{icon}</span>
+        <span className="text-accent">{icon}</span>
         {label}
       </div>
       <p className="mt-2 text-xl font-extrabold text-neutral-900">{value}</p>
@@ -60,9 +61,7 @@ function ClientCard({ client }: { client: AdminClientOverviewRow }) {
           </span>
         </div>
       </div>
-      <span aria-hidden className="hidden self-center text-neutral-300 sm:block">
-        →
-      </span>
+      <ChevronRight aria-hidden className="hidden h-5 w-5 shrink-0 self-center text-neutral-300 sm:block" />
     </Link>
   )
 }
@@ -130,9 +129,9 @@ function AddLojistaForm({ onCreated }: { onCreated: () => void }) {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="w-full rounded-2xl border border-dashed border-neutral-300 py-3 text-sm font-semibold text-neutral-600 hover:border-brand hover:text-brand"
+        className="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-dashed border-neutral-300 py-3 text-sm font-semibold text-neutral-600 hover:border-brand hover:text-brand"
       >
-        + Adicionar lojista
+        <Plus className="h-4 w-4" /> Adicionar lojista
       </button>
     )
   }
@@ -207,7 +206,7 @@ export default function AdminPage() {
   if (!session || profile?.role !== 'admin') {
     return (
       <div className="mx-auto max-w-md space-y-3 rounded-2xl border border-neutral-200 bg-white p-6 text-center">
-        <span className="text-3xl">🔒</span>
+        <Lock className="mx-auto h-8 w-8 text-neutral-300" strokeWidth={1.5} />
         <h1 className="text-lg font-bold text-neutral-900">Acesso restrito</h1>
         <p className="text-sm text-neutral-500">
           Esta área é exclusiva para administradores. Se você deveria ter acesso, peça para promover seu usuário
@@ -229,10 +228,10 @@ export default function AdminPage() {
 
       {totals && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard icon="💰" label="Total Ads Arrecadado" value={formatBRL(totals.totalAdsCents / 100)} />
-          <StatCard icon="🏢" label="Total Plataforma" value={formatBRL(totals.totalPlatformCents / 100)} />
-          <StatCard icon="🛵" label="Total Fundo Motoboy" value={formatBRL(totals.totalFundCents / 100)} />
-          <StatCard icon="📣" label="Campanhas ativas" value={String(totals.activeCampaigns)} />
+          <StatCard icon={<Wallet className="h-4 w-4" />} label="Total Ads Arrecadado" value={formatBRL(totals.totalAdsCents / 100)} />
+          <StatCard icon={<Building2 className="h-4 w-4" />} label="Total Plataforma" value={formatBRL(totals.totalPlatformCents / 100)} />
+          <StatCard icon={<Bike className="h-4 w-4" />} label="Total Fundo Motoboy" value={formatBRL(totals.totalFundCents / 100)} />
+          <StatCard icon={<Megaphone className="h-4 w-4" />} label="Campanhas ativas" value={String(totals.activeCampaigns)} />
         </div>
       )}
 

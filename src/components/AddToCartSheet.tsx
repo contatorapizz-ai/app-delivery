@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Minus, Plus, UtensilsCrossed } from 'lucide-react'
 import type { CartSelectedOption, Product, ProductOptionGroup } from '../types/domain'
 import { formatBRL } from '../lib/format'
 import { useCart } from '../context/CartContext'
@@ -87,9 +88,8 @@ export default function AddToCartSheet({ product, onClose }: Props) {
           <MediaTile
             src={product.imageUrl}
             alt={product.name}
-            icon="🍽️"
+            icon={<UtensilsCrossed className="h-6 w-6" strokeWidth={1.5} />}
             className="h-14 w-14 shrink-0 rounded-xl"
-            iconClassName="text-xl"
           />
           <div>
             <h3 className="font-bold text-neutral-900">{product.name}</h3>
@@ -155,18 +155,18 @@ export default function AddToCartSheet({ product, onClose }: Props) {
               type="button"
               aria-label="Diminuir quantidade"
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-              className="text-lg font-bold text-neutral-600"
+              className="text-neutral-600"
             >
-              −
+              <Minus className="h-4 w-4" />
             </button>
             <span className="w-5 text-center font-semibold">{quantity}</span>
             <button
               type="button"
               aria-label="Aumentar quantidade"
               onClick={() => setQuantity((q) => Math.min(20, q + 1))}
-              className="text-lg font-bold text-neutral-600"
+              className="text-neutral-600"
             >
-              +
+              <Plus className="h-4 w-4" />
             </button>
           </div>
 

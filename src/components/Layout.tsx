@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
+import { Heart, Home, Megaphone, Package, PlayCircle, Search, ShoppingCart } from 'lucide-react'
 import { useCart } from '../context/CartContext'
 import Logo from './Logo'
 import LocationBar from './LocationBar'
@@ -53,20 +54,20 @@ export default function Layout() {
               Favoritos
             </NavLink>
             <NavLink to="/carrinho" className={desktopNavLinkClass}>
-              <span className="relative">
-                🛒 Carrinho
+              <span className="relative flex items-center gap-1.5">
+                <ShoppingCart className="h-4 w-4" /> Carrinho
                 <CartBadge />
               </span>
             </NavLink>
             <NavLink
               to="/anunciar"
               className={({ isActive }) =>
-                `ml-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                `ml-2 flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition ${
                   isActive ? 'border-brand bg-brand text-white' : 'border-neutral-300 text-neutral-600 hover:border-brand hover:text-brand'
                 }`
               }
             >
-              📣 Anunciar
+              <Megaphone className="h-4 w-4" /> Anunciar
             </NavLink>
             <div className="ml-2 border-l border-neutral-200 pl-2">
               <AccountNavItemDesktop />
@@ -75,9 +76,9 @@ export default function Layout() {
 
           <NavLink
             to="/anunciar"
-            className="rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold text-neutral-600 lg:hidden"
+            className="flex items-center gap-1.5 rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold text-neutral-600 lg:hidden"
           >
-            📣 Anunciar
+            <Megaphone className="h-3.5 w-3.5" /> Anunciar
           </NavLink>
         </div>
       </header>
@@ -94,23 +95,23 @@ export default function Layout() {
       >
         <div className="mx-auto flex max-w-3xl items-center justify-around">
           <NavLink to="/" end className={mobileNavLinkClass}>
-            <span className="text-xl leading-none">🏠</span>
+            <Home className="h-5 w-5" strokeWidth={1.75} />
             Início
           </NavLink>
           <NavLink to="/shop" className={mobileNavLinkClass}>
-            <span className="text-xl leading-none">▶️</span>
+            <PlayCircle className="h-5 w-5" strokeWidth={1.75} />
             Rapizz Shop
           </NavLink>
           <NavLink to="/busca" className={mobileNavLinkClass}>
-            <span className="text-xl leading-none">🔍</span>
+            <Search className="h-5 w-5" strokeWidth={1.75} />
             Busca
           </NavLink>
           <NavLink to="/pedidos" className={mobileNavLinkClass}>
-            <span className="text-xl leading-none">📦</span>
+            <Package className="h-5 w-5" strokeWidth={1.75} />
             Pedidos
           </NavLink>
           <NavLink to="/favoritos" className={mobileNavLinkClass}>
-            <span className="text-xl leading-none">♡</span>
+            <Heart className="h-5 w-5" strokeWidth={1.75} />
             Favoritos
           </NavLink>
           <AccountNavItemMobile />
