@@ -3,17 +3,21 @@ import { useAuth } from '../context/AuthContext'
 import AuthForm from '../components/auth/AuthForm'
 import { supabase } from '../lib/supabase'
 import { readJSON, writeJSON } from '../lib/storage'
+import { CITIES } from '../data/cities'
+import { useSelectedCity } from '../hooks/useSelectedCity'
 
 const NOTIFICATIONS_KEY = 'rapizz.notifications.v1'
 
 export default function SettingsPage() {
   const { session, profile, loading, refreshProfile } = useAuth()
+  const { city, setCity } = useSelectedCity()
   const [fullName, setFullName] = useState(profile?.full_name ?? '')
   const [phone, setPhone] = useState(profile?.phone ?? '')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [notifications, setNotifications] = useState(() => readJSON(NOTIFICATIONS_KEY, true))
+  const [cityError, setCityError] = useState<string | null>(null)
 
   if (loading) return <div className="h-64 animate-pulse rounded-2xl bg-neutral-200" />
 
@@ -88,6 +92,32 @@ export default function SettingsPage() {
           {saving ? 'Salvando...' : 'Salvar alterações'}
         </button>
       </form>
+
+      <div className="rounded-2xl border border-neutral-200 bg-white p-4">
+        <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-neutral-500">Localização</h2>
+        <select
+          value={city}
+          onChange={async (e) => {
+            setCityError(null)
+            try {
+              await setCity(e.target.value)
+            } catch (err) {
+              setCityError(err instanceof Error ? err.message : 'Não foi possível salvar a cidade.')
+            }
+          }}
+          className="w-full rounded-lg border border-neutral-200 p-2.5 text-sm outline-none focus:border-brand"
+        >
+          {CITIES.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+        {cityError && <p className="mt-1.5 text-xs text-red-600">{cityError}</p>}
+        <p className="mt-1.5 text-xs text-neutral-400">
+          Salva no seu perfil e aparece no topo do app em qualquer aparelho que você entrar.
+        </p>
+      </div>
 
       <div className="rounded-2xl border border-neutral-200 bg-white p-4">
         <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-neutral-500">Preferências</h2>

@@ -53,6 +53,7 @@ export async function createCampaign(input: {
   budget: number
   startsAt: string
   endsAt: string
+  videoUrl: string | null
 }): Promise<AdCampaignRow> {
   const { data, error } = await supabase
     .from('ad_campaigns')
@@ -66,6 +67,7 @@ export async function createCampaign(input: {
       starts_at: input.startsAt,
       ends_at: input.endsAt,
       status: 'pendente_pagamento',
+      video_url: input.videoUrl,
     })
     .select('*')
     .single()

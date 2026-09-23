@@ -7,7 +7,7 @@ import BannerDestaque from '../components/ads/BannerDestaque'
 import StoryPremiumRow from '../components/ads/StoryPremiumRow'
 import ProdutoPatrocinado from '../components/ads/ProdutoPatrocinado'
 import { fetchStores } from '../data/api'
-import { CITY_CHANGED_EVENT, getSelectedCity } from '../lib/location'
+import { useSelectedCity } from '../hooks/useSelectedCity'
 import type { Store, StoreCategory } from '../types/domain'
 
 type SortOption = 'relevancia' | 'avaliacao' | 'entrega' | 'taxa'
@@ -22,7 +22,7 @@ const SORT_LABEL: Record<SortOption, string> = {
 export default function HomePage() {
   const [activeCategory, setActiveCategory] = useState<StoreCategory | null>(null)
   const [sort, setSort] = useState<SortOption>('relevancia')
-  const [city, setCity] = useState(getSelectedCity)
+  const { city } = useSelectedCity()
   const [stores, setStores] = useState<Store[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
@@ -42,14 +42,6 @@ export default function HomePage() {
     return () => {
       cancelled = true
     }
-  }, [])
-
-  useEffect(() => {
-    function onCityChanged() {
-      setCity(getSelectedCity())
-    }
-    window.addEventListener(CITY_CHANGED_EVENT, onCityChanged)
-    return () => window.removeEventListener(CITY_CHANGED_EVENT, onCityChanged)
   }, [])
 
   const filteredStores = useMemo(() => {

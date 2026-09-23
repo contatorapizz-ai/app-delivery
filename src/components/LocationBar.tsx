@@ -2,17 +2,24 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { CITIES } from '../data/cities'
-import { getSelectedCity, setSelectedCity } from '../lib/location'
+import { useSelectedCity } from '../hooks/useSelectedCity'
 
 export default function LocationBar() {
   const { session, profile } = useAuth()
-  const [city, setCity] = useState(getSelectedCity)
+  const { city, setCity } = useSelectedCity()
   const [open, setOpen] = useState(false)
+  const [saving, setSaving] = useState(false)
 
-  function selectCity(next: string) {
-    setCity(next)
-    setSelectedCity(next)
-    setOpen(false)
+  async function selectCity(next: string) {
+    setSaving(true)
+    try {
+      await setCity(next)
+      setOpen(false)
+    } catch {
+      // erro silencioso — o seletor continua aberto pra tentar de novo
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -51,8 +58,9 @@ export default function LocationBar() {
             {CITIES.map((c) => (
               <button
                 key={c}
+                disabled={saving}
                 onClick={() => selectCity(c)}
-                className={`rounded-full border px-3 py-1 text-xs font-medium ${
+                className={`rounded-full border px-3 py-1 text-xs font-medium disabled:opacity-50 ${
                   c === city ? 'border-brand bg-brand-light text-brand' : 'border-neutral-200 text-neutral-600'
                 }`}
               >
@@ -60,6 +68,11 @@ export default function LocationBar() {
               </button>
             ))}
           </div>
+          {!session && (
+            <p className="mt-2 text-[11px] text-neutral-400">
+              Entre na sua conta pra salvar a cidade no seu perfil e ela valer em qualquer aparelho.
+            </p>
+          )}
         </div>
       )}
     </div>

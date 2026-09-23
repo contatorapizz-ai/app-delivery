@@ -24,6 +24,7 @@ export interface ProfileRow {
   full_name: string
   email: string | null
   phone: string | null
+  city: string | null
   created_at: string
 }
 
@@ -119,6 +120,23 @@ export interface AdCampaignRow {
   ends_at: string
   created_at: string
   activated_at: string | null
+  video_url: string | null
+}
+
+export interface ShopLikeRow {
+  id: string
+  campaign_id: string
+  profile_id: string
+  created_at: string
+}
+
+export interface ShopCommentRow {
+  id: string
+  campaign_id: string
+  profile_id: string
+  author_name: string
+  body: string
+  created_at: string
 }
 
 export interface AdEventRow {

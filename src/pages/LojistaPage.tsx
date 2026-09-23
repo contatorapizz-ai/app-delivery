@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import AuthForm from '../components/auth/AuthForm'
 import ImagePicker from '../components/ImagePicker'
+import VideoPicker from '../components/VideoPicker'
 import MediaTile from '../components/MediaTile'
 import {
   activateCampaign,
@@ -163,6 +164,7 @@ function CampaignForm({ storeId, onCreated }: { storeId: string; onCreated: () =
   const [budget, setBudget] = useState('')
   const [startsAt, setStartsAt] = useState('')
   const [endsAt, setEndsAt] = useState('')
+  const [videoUrl, setVideoUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -180,12 +182,14 @@ function CampaignForm({ storeId, onCreated }: { storeId: string; onCreated: () =
         budget: Number(budget) || 0,
         startsAt,
         endsAt,
+        videoUrl,
       })
       setTitle('')
       setDescription('')
       setBudget('')
       setStartsAt('')
       setEndsAt('')
+      setVideoUrl(null)
       onCreated()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível criar a campanha.')
@@ -280,6 +284,8 @@ function CampaignForm({ storeId, onCreated }: { storeId: string; onCreated: () =
           className="w-full rounded-lg border border-neutral-200 p-2.5 text-sm outline-none focus:border-brand"
         />
       </div>
+
+      <VideoPicker value={videoUrl} onChange={setVideoUrl} />
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 

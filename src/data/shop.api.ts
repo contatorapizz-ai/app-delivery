@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase'
 import { mapProduct, mapStore } from '../lib/mappers'
 import type { Product, Store } from '../types/domain'
-import type { AdCampaignRow, ProductRow, StoreRow } from '../types/database'
+import type { AdCampaignRow, ProductRow, ShopCommentRow, StoreRow } from '../types/database'
 
 export interface ShowcaseItem {
   campaign: AdCampaignRow
@@ -45,4 +45,69 @@ export async function fetchShowcase(): Promise<ShowcaseItem[]> {
     items.push({ campaign: c, store, product: c.product_id ? (productMap.get(c.product_id) ?? null) : null })
   }
   return items
+}
+
+export interface ShopEngagement {
+  likeCount: number
+  commentCount: number
+  likedByMe: boolean
+}
+
+export async function fetchEngagement(
+  campaignIds: string[],
+  profileId: string | null,
+): Promise<Record<string, ShopEngagement>> {
+  const result: Record<string, ShopEngagement> = {}
+  for (const id of campaignIds) result[id] = { likeCount: 0, commentCount: 0, likedByMe: false }
+  if (campaignIds.length === 0) return result
+
+  const [{ data: likes, error: likesError }, { data: comments, error: commentsError }] = await Promise.all([
+    supabase.from('shop_likes').select('campaign_id, profile_id').in('campaign_id', campaignIds),
+    supabase.from('shop_comments').select('campaign_id').in('campaign_id', campaignIds),
+  ])
+  if (likesError) throw likesError
+  if (commentsError) throw commentsError
+
+  for (const like of (likes ?? []) as { campaign_id: string; profile_id: string }[]) {
+    result[like.campaign_id].likeCount += 1
+    if (profileId && like.profile_id === profileId) result[like.campaign_id].likedByMe = true
+  }
+  for (const comment of (comments ?? []) as { campaign_id: string }[]) {
+    result[comment.campaign_id].commentCount += 1
+  }
+  return result
+}
+
+export async function toggleLike(campaignId: string, profileId: string, currentlyLiked: boolean): Promise<void> {
+  if (currentlyLiked) {
+    const { error } = await supabase
+      .from('shop_likes')
+      .delete()
+      .eq('campaign_id', campaignId)
+      .eq('profile_id', profileId)
+    if (error) throw error
+  } else {
+    const { error } = await supabase.from('shop_likes').insert({ campaign_id: campaignId, profile_id: profileId })
+    if (error) throw error
+  }
+}
+
+export async function fetchComments(campaignId: string): Promise<ShopCommentRow[]> {
+  const { data, error } = await supabase
+    .from('shop_comments')
+    .select('*')
+    .eq('campaign_id', campaignId)
+    .order('created_at', { ascending: true })
+  if (error) throw error
+  return (data ?? []) as ShopCommentRow[]
+}
+
+export async function addComment(campaignId: string, profileId: string, authorName: string, body: string): Promise<ShopCommentRow> {
+  const { data, error } = await supabase
+    .from('shop_comments')
+    .insert({ campaign_id: campaignId, profile_id: profileId, author_name: authorName, body })
+    .select('*')
+    .single()
+  if (error) throw error
+  return data as ShopCommentRow
 }
