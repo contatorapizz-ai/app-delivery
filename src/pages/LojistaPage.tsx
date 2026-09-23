@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import AuthForm from '../components/auth/AuthForm'
+import ImagePicker from '../components/ImagePicker'
 import MediaTile from '../components/MediaTile'
 import {
   activateCampaign,
@@ -20,12 +21,6 @@ import { formatBRL } from '../lib/format'
 import { FORMAT_LABEL, LIVE_FORMATS, OBJECTIVE_LABEL, STATUS_COLOR, STATUS_LABEL } from '../lib/adLabels'
 import type { AdCampaignRow, AdFormat, AdObjective, StoreRow } from '../types/database'
 
-function normalizeImageUrl(raw: string): string | null {
-  const trimmed = raw.trim()
-  if (!trimmed) return null
-  return /^https:\/\//.test(trimmed) ? trimmed : null
-}
-
 function CreateStoreForm({ onCreated }: { onCreated: (store: StoreRow) => void }) {
   const { session, refreshProfile } = useAuth()
   const [name, setName] = useState('')
@@ -34,7 +29,7 @@ function CreateStoreForm({ onCreated }: { onCreated: (store: StoreRow) => void }
   const [whatsapp, setWhatsapp] = useState('')
   const [deliveryFee, setDeliveryFee] = useState('')
   const [minOrder, setMinOrder] = useState('')
-  const [imageUrl, setImageUrl] = useState('')
+  const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -52,7 +47,7 @@ function CreateStoreForm({ onCreated }: { onCreated: (store: StoreRow) => void }
         whatsapp,
         deliveryFee: Number(deliveryFee) || 0,
         minOrder: Number(minOrder) || 0,
-        imageUrl: normalizeImageUrl(imageUrl),
+        imageUrl,
       })
       // só promove quem ainda é 'cliente' (default) — nunca rebaixa admin/motoboy
       await supabase.from('profiles').update({ role: 'lojista' }).eq('id', session.user.id).eq('role', 'cliente')
@@ -126,21 +121,13 @@ function CreateStoreForm({ onCreated }: { onCreated: (store: StoreRow) => void }
             className="w-full rounded-lg border border-neutral-200 p-2.5 text-sm outline-none focus:border-brand"
           />
         </div>
-        <div className="flex items-center gap-3">
-          <MediaTile
-            src={normalizeImageUrl(imageUrl)}
-            alt="Pré-visualização da loja"
-            icon="🏪"
-            className="h-14 w-14 shrink-0 rounded-lg"
-            iconClassName="text-lg"
-          />
-          <input
-            placeholder="URL da foto da loja (opcional, https://...)"
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            className="w-full rounded-lg border border-neutral-200 p-2.5 text-sm outline-none focus:border-brand"
-          />
-        </div>
+        <ImagePicker
+          value={imageUrl}
+          onChange={setImageUrl}
+          icon="🏪"
+          tileClassName="h-14 w-14 rounded-lg"
+          iconClassName="text-lg"
+        />
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button
           type="submit"
@@ -369,19 +356,15 @@ function CampaignRow({ campaign, onChanged }: { campaign: AdCampaignRow; onChang
 }
 
 function StoreImageEditor({ store, onUpdated }: { store: StoreRow; onUpdated: (url: string | null) => void }) {
-  const [editing, setEditing] = useState(false)
-  const [imageUrl, setImageUrl] = useState(store.image_url ?? '')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  async function handleSave() {
+  async function handleChange(url: string | null) {
     setSaving(true)
     setError(null)
     try {
-      const normalized = normalizeImageUrl(imageUrl)
-      await updateStoreImage(store.id, normalized)
-      onUpdated(normalized)
-      setEditing(false)
+      await updateStoreImage(store.id, url)
+      onUpdated(url)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível salvar a foto.')
     } finally {
@@ -390,47 +373,17 @@ function StoreImageEditor({ store, onUpdated }: { store: StoreRow; onUpdated: (u
   }
 
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-4">
-      <MediaTile
-        src={store.image_url}
-        alt={store.name}
+    <div className="rounded-2xl border border-neutral-200 bg-white p-4">
+      <p className="mb-2 text-sm font-semibold text-neutral-900">Foto da loja</p>
+      <ImagePicker
+        value={store.image_url}
+        onChange={handleChange}
         icon="🏪"
-        className="h-16 w-16 shrink-0 rounded-xl"
+        tileClassName="h-16 w-16 rounded-xl"
         iconClassName="text-2xl"
       />
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-neutral-900">Foto da loja</p>
-        {editing ? (
-          <div className="mt-1.5 space-y-1.5">
-            <input
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="https://..."
-              className="w-full rounded-lg border border-neutral-200 p-2 text-sm outline-none focus:border-brand"
-            />
-            {error && <p className="text-xs text-red-600">{error}</p>}
-            <div className="flex gap-2">
-              <button
-                onClick={() => setEditing(false)}
-                className="rounded-full border border-neutral-200 px-3 py-1 text-xs font-semibold text-neutral-600"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="rounded-full bg-brand px-3 py-1 text-xs font-bold text-white disabled:opacity-50"
-              >
-                {saving ? 'Salvando...' : 'Salvar'}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button onClick={() => setEditing(true)} className="mt-0.5 text-xs font-semibold text-brand">
-            {store.image_url ? 'Trocar foto' : 'Adicionar foto'}
-          </button>
-        )}
-      </div>
+      {saving && <p className="mt-1.5 text-xs text-neutral-400">Salvando...</p>}
+      {error && <p className="mt-1.5 text-xs text-red-600">{error}</p>}
     </div>
   )
 }
@@ -441,7 +394,7 @@ function ProductForm({ storeId, onCreated }: { storeId: string; onCreated: () =>
   const [description, setDescription] = useState('')
   const [price, setPrice] = useState('')
   const [menuCategory, setMenuCategory] = useState('')
-  const [imageUrl, setImageUrl] = useState('')
+  const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -456,13 +409,13 @@ function ProductForm({ storeId, onCreated }: { storeId: string; onCreated: () =>
         description,
         price: Number(price) || 0,
         menuCategory: menuCategory.trim() || 'Geral',
-        imageUrl: normalizeImageUrl(imageUrl),
+        imageUrl,
       })
       setName('')
       setDescription('')
       setPrice('')
       setMenuCategory('')
-      setImageUrl('')
+      setImageUrl(null)
       setOpen(false)
       onCreated()
     } catch (err) {
@@ -518,21 +471,13 @@ function ProductForm({ storeId, onCreated }: { storeId: string; onCreated: () =>
           className="w-full rounded-lg border border-neutral-200 p-2.5 text-sm outline-none focus:border-brand"
         />
       </div>
-      <div className="flex items-center gap-3">
-        <MediaTile
-          src={normalizeImageUrl(imageUrl)}
-          alt="Pré-visualização"
-          icon="🍽️"
-          className="h-14 w-14 shrink-0 rounded-lg"
-          iconClassName="text-lg"
-        />
-        <input
-          placeholder="URL da foto do item (opcional, https://...)"
-          value={imageUrl}
-          onChange={(e) => setImageUrl(e.target.value)}
-          className="w-full rounded-lg border border-neutral-200 p-2.5 text-sm outline-none focus:border-brand"
-        />
-      </div>
+      <ImagePicker
+        value={imageUrl}
+        onChange={setImageUrl}
+        icon="🍽️"
+        tileClassName="h-14 w-14 rounded-lg"
+        iconClassName="text-lg"
+      />
       {error && <p className="text-sm text-red-600">{error}</p>}
       <div className="flex gap-2">
         <button
@@ -560,7 +505,7 @@ function ProductRow({ product, onChanged }: { product: Product; onChanged: () =>
   const [description, setDescription] = useState(product.description)
   const [price, setPrice] = useState(String(product.price))
   const [menuCategory, setMenuCategory] = useState(product.menuCategory)
-  const [imageUrl, setImageUrl] = useState(product.imageUrl ?? '')
+  const [imageUrl, setImageUrl] = useState<string | null>(product.imageUrl)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -574,7 +519,7 @@ function ProductRow({ product, onChanged }: { product: Product; onChanged: () =>
         description,
         price: Number(price) || 0,
         menuCategory: menuCategory.trim() || 'Geral',
-        imageUrl: normalizeImageUrl(imageUrl),
+        imageUrl,
       })
       setEditing(false)
       onChanged()
@@ -655,21 +600,13 @@ function ProductRow({ product, onChanged }: { product: Product; onChanged: () =>
           className="w-full rounded-lg border border-neutral-200 p-2 text-sm outline-none focus:border-brand"
         />
       </div>
-      <div className="flex items-center gap-2">
-        <MediaTile
-          src={normalizeImageUrl(imageUrl)}
-          alt="Pré-visualização"
-          icon="🍽️"
-          className="h-12 w-12 shrink-0 rounded-lg"
-          iconClassName="text-base"
-        />
-        <input
-          value={imageUrl}
-          onChange={(e) => setImageUrl(e.target.value)}
-          placeholder="URL da foto (https://...)"
-          className="w-full rounded-lg border border-neutral-200 p-2 text-sm outline-none focus:border-brand"
-        />
-      </div>
+      <ImagePicker
+        value={imageUrl}
+        onChange={setImageUrl}
+        icon="🍽️"
+        tileClassName="h-12 w-12 rounded-lg"
+        iconClassName="text-base"
+      />
       {error && <p className="text-xs text-red-600">{error}</p>}
       <div className="flex gap-2">
         <button
