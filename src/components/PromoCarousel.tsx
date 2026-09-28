@@ -16,7 +16,7 @@ const SLIDES: Slide[] = [
     title: 'Entrega Expressa',
     subtitle: 'Peça agora e receba em minutos',
     cta: 'Aproveitar',
-    gradient: 'from-navy to-brand',
+    gradient: 'from-navy via-indigo-800 to-navy',
     icon: Zap,
   },
   {
@@ -24,7 +24,7 @@ const SLIDES: Slide[] = [
     title: 'Rapizz Ads',
     subtitle: 'Sua loja em destaque pra quem está pertinho',
     cta: 'Anunciar',
-    gradient: 'from-brand to-accent',
+    gradient: 'from-indigo-900 via-navy to-blue-900',
     icon: Megaphone,
   },
   {
@@ -32,7 +32,7 @@ const SLIDES: Slide[] = [
     title: 'Você entrega, você ganha',
     subtitle: 'Parte de cada campanha vai direto pros entregadores',
     cta: 'Entenda',
-    gradient: 'from-navy to-accent',
+    gradient: 'from-blue-900 via-navy to-indigo-800',
     icon: ShieldCheck,
   },
 ]
