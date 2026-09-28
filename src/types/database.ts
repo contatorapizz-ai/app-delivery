@@ -1,5 +1,17 @@
 export type UserRole = 'cliente' | 'lojista' | 'motoboy' | 'admin'
-export type DbOrderStatus = 'recebido' | 'preparando' | 'em_entrega' | 'entregue' | 'cancelado'
+export type DbOrderStatus =
+  | 'recebido'
+  | 'aceito'
+  | 'preparando'
+  | 'em_preparo'
+  | 'pronto_retirada'
+  | 'coletado'
+  | 'em_entrega'
+  | 'entregue'
+  | 'cancelado'
+  | 'recusado'
+export type MotoboyStatus = 'em_analise' | 'aprovado' | 'bloqueado'
+export type DeliveryStatus = 'disponivel' | 'aceita' | 'coletada' | 'em_entrega' | 'concluida' | 'cancelada'
 export type AdObjective = 'vendas' | 'cliques' | 'alcance' | 'conversoes' | 'reconhecimento_marca'
 export type AdFormat =
   | 'story_premium'
@@ -86,6 +98,7 @@ export interface ProductRow {
   image_url: string | null
   menu_category: string
   option_groups: ProductOptionGroupRow[]
+  is_available: boolean
   created_at: string
 }
 
@@ -102,7 +115,49 @@ export interface OrderRow {
   delivery_fee_cents: number
   total_cents: number
   status: DbOrderStatus
+  prep_minutes: number | null
+  status_note: string | null
+  rated: boolean
+  rating: number | null
+  rating_comment: string | null
   created_at: string
+}
+
+export interface OrderStatusHistoryRow {
+  id: string
+  order_id: string
+  status: string
+  actor_id: string | null
+  actor_role: UserRole | null
+  note: string | null
+  created_at: string
+}
+
+export interface DeliveryRow {
+  id: string
+  order_id: string
+  store_id: string
+  motoboy_id: string | null
+  status: DeliveryStatus
+  delivery_code: string
+  dropoff_label: string | null
+  fee_cents: number
+  offered_at: string
+  accepted_at: string | null
+  picked_up_at: string | null
+  delivered_at: string | null
+  cancel_reason: string | null
+  created_at: string
+}
+
+export interface MotoboyProfileRow {
+  profile_id: string
+  vehicle_type: string
+  vehicle_plate: string | null
+  status: MotoboyStatus
+  is_available: boolean
+  created_at: string
+  updated_at: string
 }
 
 export interface AdCampaignRow {

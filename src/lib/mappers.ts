@@ -1,5 +1,5 @@
-import type { StoreRow, ProductRow, ProductOptionGroupRow } from '../types/database'
-import type { Product, ProductOptionGroup, Store, StoreCategory } from '../types/domain'
+import type { OrderRow, StoreRow, ProductRow, ProductOptionGroupRow } from '../types/database'
+import type { Order, Product, ProductOptionGroup, Store, StoreCategory } from '../types/domain'
 
 export function centsToReais(cents: number): number {
   return Math.round(cents) / 100
@@ -51,5 +51,27 @@ export function mapProduct(row: ProductRow): Product {
     imageUrl: row.image_url,
     menuCategory: row.menu_category,
     optionGroups: (row.option_groups ?? []).map(mapOptionGroup),
+    isAvailable: row.is_available,
+  }
+}
+
+export function mapOrder(row: OrderRow, storeName: string): Order {
+  return {
+    id: row.id,
+    storeId: row.store_id,
+    storeName,
+    items: (row.items ?? []) as Order['items'],
+    total: centsToReais(row.total_cents),
+    deliveryFee: centsToReais(row.delivery_fee_cents),
+    status: row.status,
+    createdAt: row.created_at,
+    customerName: row.customer_name,
+    customerPhone: row.customer_phone,
+    address: row.address,
+    notes: row.notes ?? undefined,
+    prepMinutes: row.prep_minutes,
+    statusNote: row.status_note,
+    rated: row.rated,
+    rating: row.rating,
   }
 }

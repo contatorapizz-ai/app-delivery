@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronRight, HelpCircle, Heart, LogOut, Megaphone, Package, Settings, User, Wrench } from 'lucide-react'
+import { Bike, ChevronRight, ClipboardList, HelpCircle, Heart, LogOut, Megaphone, Package, Settings, User, Wrench } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import AuthForm from '../components/auth/AuthForm'
 
@@ -78,12 +78,21 @@ export default function AccountPage() {
 
       <div className="divide-y divide-neutral-100 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
         {session && (role === 'lojista' || role === 'admin') && (
+          <MenuLink to="/lojista" icon={<ClipboardList className="h-4 w-4" />} label="Pedidos da loja" />
+        )}
+        {session && (role === 'lojista' || role === 'admin') && (
           <MenuLink to="/anunciar" icon={<Megaphone className="h-4 w-4" />} label="Rapizz Ads — minhas campanhas" />
+        )}
+        {session && (role === 'motoboy' || role === 'admin') && (
+          <MenuLink to="/entregador" icon={<Bike className="h-4 w-4" />} label="Minhas entregas" />
         )}
         {session && role === 'admin' && (
           <MenuLink to="/admin" icon={<Wrench className="h-4 w-4" />} label="Painel administrativo" />
         )}
         <MenuLink to="/pedidos" icon={<Package className="h-4 w-4" />} label="Meus Pedidos" />
+        {session && role === 'cliente' && (
+          <MenuLink to="/entregador" icon={<Bike className="h-4 w-4" />} label="Seja um entregador" />
+        )}
         <MenuLink to="/favoritos" icon={<Heart className="h-4 w-4" />} label="Favoritos" />
         <MenuLink to="/suporte" icon={<HelpCircle className="h-4 w-4" />} label="Suporte Rapizz" />
         <MenuLink to="/configuracoes" icon={<Settings className="h-4 w-4" />} label="Configurações" />

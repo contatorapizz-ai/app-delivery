@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase'
-import { mapProduct, mapStore, reaisToCents } from '../lib/mappers'
+import { mapOrder, mapProduct, mapStore, reaisToCents } from '../lib/mappers'
 import type { CartItem, Order, Store, Product } from '../types/domain'
 import type { OrderRow, StoreRow, ProductRow } from '../types/database'
 
@@ -71,5 +71,38 @@ export async function createOrder(params: {
     customerPhone: row.customer_phone,
     address: row.address,
     notes: row.notes ?? undefined,
+    prepMinutes: row.prep_minutes,
+    statusNote: row.status_note,
+    rated: row.rated,
+    rating: row.rating,
   }
+}
+
+export async function fetchMyOrders(customerId: string): Promise<Order[]> {
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*, store:stores(name)')
+    .eq('customer_id', customerId)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return ((data ?? []) as (OrderRow & { store: { name: string } | null })[]).map((row) =>
+    mapOrder(row, row.store?.name ?? 'Loja'),
+  )
+}
+
+export async function rateOrder(orderId: string, rating: number, comment: string): Promise<void> {
+  const { error } = await supabase.rpc('rate_order', {
+    p_order_id: orderId,
+    p_rating: rating,
+    p_comment: comment || null,
+  })
+  if (error) throw error
+}
+
+export async function cancelOrder(orderId: string, reason?: string): Promise<void> {
+  const { error } = await supabase.rpc('customer_cancel_order', {
+    p_order_id: orderId,
+    p_reason: reason ?? null,
+  })
+  if (error) throw error
 }

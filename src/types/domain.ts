@@ -66,6 +66,7 @@ export interface Product {
   imageUrl: string | null
   menuCategory: string
   optionGroups?: ProductOptionGroup[]
+  isAvailable: boolean
 }
 
 export interface CartSelectedOption {
@@ -87,7 +88,17 @@ export interface CartItem {
   selectedOptions: CartSelectedOption[]
 }
 
-export type OrderStatus = 'recebido' | 'preparando' | 'em_entrega' | 'entregue' | 'cancelado'
+export type OrderStatus =
+  | 'recebido'
+  | 'aceito'
+  | 'preparando'
+  | 'em_preparo'
+  | 'pronto_retirada'
+  | 'coletado'
+  | 'em_entrega'
+  | 'entregue'
+  | 'cancelado'
+  | 'recusado'
 
 export interface Order {
   id: string
@@ -102,4 +113,8 @@ export interface Order {
   customerPhone: string
   address: string
   notes?: string
+  prepMinutes?: number | null
+  statusNote?: string | null
+  rated?: boolean
+  rating?: number | null
 }

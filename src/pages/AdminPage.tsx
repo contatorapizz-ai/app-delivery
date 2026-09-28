@@ -1,9 +1,10 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { Bike, Building2, ChevronRight, Lock, Megaphone, Plus, Wallet } from 'lucide-react'
+import { Bike, Building2, ChevronRight, Lock, Megaphone, Plus, ShieldCheck, ShieldOff, Wallet } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { fetchAdminClientOverview, fetchAdminTotals, type AdminClientOverviewRow, type AdminTotals } from '../data/ads.api'
 import { createLojista } from '../data/adminUsers.api'
+import { fetchAllMotoboys, setMotoboyStatus, type MotoboyWithProfile } from '../data/motoboy.api'
 import { categoryMeta } from '../data/categories'
 import { formatBRL } from '../lib/format'
 import type { StoreCategory } from '../types/domain'
@@ -179,6 +180,91 @@ function AddLojistaForm({ onCreated }: { onCreated: () => void }) {
   )
 }
 
+function MotoboysSection() {
+  const [motoboys, setMotoboys] = useState<MotoboyWithProfile[] | null>(null)
+  const [busyId, setBusyId] = useState<string | null>(null)
+
+  function load() {
+    fetchAllMotoboys()
+      .then(setMotoboys)
+      .catch(() => setMotoboys([]))
+  }
+
+  useEffect(() => {
+    load()
+  }, [])
+
+  async function handleSetStatus(profileId: string, status: 'aprovado' | 'bloqueado') {
+    setBusyId(profileId)
+    try {
+      await setMotoboyStatus(profileId, status)
+      load()
+    } catch {
+      // erro silencioso — lista continua com o estado anterior
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  return (
+    <section className="space-y-3">
+      <h2 className="text-sm font-bold uppercase tracking-wide text-neutral-500">Motoboys</h2>
+      {motoboys === null ? (
+        <div className="h-16 animate-pulse rounded-2xl bg-neutral-200" />
+      ) : motoboys.length === 0 ? (
+        <p className="rounded-xl border border-dashed border-neutral-300 py-6 text-center text-sm text-neutral-500">
+          Nenhum entregador cadastrado ainda.
+        </p>
+      ) : (
+        <div className="space-y-2">
+          {motoboys.map(({ motoboy, profile: p }) => (
+            <div key={motoboy.profile_id} className="flex items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-white p-3">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-neutral-900">{p.full_name || p.email}</p>
+                <p className="truncate text-xs text-neutral-500">
+                  {motoboy.vehicle_type}
+                  {motoboy.vehicle_plate ? ` · ${motoboy.vehicle_plate}` : ''} ·{' '}
+                  <span
+                    className={
+                      motoboy.status === 'aprovado'
+                        ? 'text-emerald-600'
+                        : motoboy.status === 'bloqueado'
+                          ? 'text-red-600'
+                          : 'text-amber-600'
+                    }
+                  >
+                    {motoboy.status === 'aprovado' ? 'Aprovado' : motoboy.status === 'bloqueado' ? 'Bloqueado' : 'Em análise'}
+                  </span>
+                </p>
+              </div>
+              <div className="flex shrink-0 gap-2">
+                {motoboy.status !== 'aprovado' && (
+                  <button
+                    onClick={() => handleSetStatus(motoboy.profile_id, 'aprovado')}
+                    disabled={busyId === motoboy.profile_id}
+                    className="flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-bold text-emerald-700 disabled:opacity-50"
+                  >
+                    <ShieldCheck className="h-3.5 w-3.5" /> Aprovar
+                  </button>
+                )}
+                {motoboy.status !== 'bloqueado' && (
+                  <button
+                    onClick={() => handleSetStatus(motoboy.profile_id, 'bloqueado')}
+                    disabled={busyId === motoboy.profile_id}
+                    className="flex items-center gap-1 rounded-full bg-red-100 px-3 py-1.5 text-xs font-bold text-red-700 disabled:opacity-50"
+                  >
+                    <ShieldOff className="h-3.5 w-3.5" /> Bloquear
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
+
 export default function AdminPage() {
   const { session, profile, loading } = useAuth()
   const [totals, setTotals] = useState<AdminTotals | null>(null)
@@ -257,10 +343,12 @@ export default function AdminPage() {
         )}
       </section>
 
+      <MotoboysSection />
+
       <p className="rounded-xl bg-neutral-100 px-4 py-3 text-xs leading-relaxed text-neutral-500">
-        A distribuição individual por motoboy depende de um módulo de entregadores ainda não construído — por
-        enquanto o fundo é calculado e registrado de forma agregada (50% plataforma / 50% fundo a cada campanha
-        ativada).
+        A distribuição individual do Fundo Motoboy por entregador (repasse financeiro por corrida) ainda não está
+        implementada — hoje o fundo é calculado e registrado de forma agregada (50% plataforma / 50% fundo a cada
+        campanha ativada). A aprovação/bloqueio de entregadores acima já é real e afeta o acesso deles em produção.
       </p>
     </div>
   )
