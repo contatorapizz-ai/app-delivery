@@ -33,8 +33,8 @@ export default function LocationBar() {
   }
 
   return (
-    <div className="border-b border-neutral-100 bg-white">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2 lg:px-8">
+    <header className="sticky top-0 z-30 bg-white">
+      <div className="flex items-center justify-between gap-3 px-4 py-3 lg:px-6">
         <button onClick={handleOpen} className="min-w-0 text-left">
           <span className="flex items-center gap-1 text-sm font-bold text-navy">
             <MapPin className="h-4 w-4 shrink-0 text-brand" />
@@ -65,7 +65,7 @@ export default function LocationBar() {
       </div>
 
       {open && (
-        <form onSubmit={handleSave} className="border-t border-neutral-100 px-4 py-2.5 lg:px-8">
+        <form onSubmit={handleSave} className="border-t border-neutral-100 px-4 py-2.5 lg:px-6">
           <div className="flex gap-2">
             <input
               autoFocus
@@ -90,6 +90,6 @@ export default function LocationBar() {
           )}
         </form>
       )}
-    </div>
+    </header>
   )
 }

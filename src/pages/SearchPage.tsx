@@ -1,13 +1,20 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Clock, Search, X } from 'lucide-react'
-import StoreCard from '../components/StoreCard'
+import { ArrowLeft, Clock, Fish, IceCreamCone, Pill, Pizza, Sandwich, Search, ShoppingCart, X } from 'lucide-react'
+import StoreRow from '../components/StoreRow'
 import { fetchStores } from '../data/api'
 import { readJSON, writeJSON } from '../lib/storage'
 import type { Store } from '../types/domain'
 
 const RECENT_KEY = 'rapizz.recentSearches.v1'
-const POPULAR = ['Pizza', 'Hambúrguer', 'Açaí', 'Sushi', 'Mercado', 'Farmácia']
+const POPULAR = [
+  { term: 'Pizza', icon: Pizza },
+  { term: 'Hambúrguer', icon: Sandwich },
+  { term: 'Sushi', icon: Fish },
+  { term: 'Açaí', icon: IceCreamCone },
+  { term: 'Mercado', icon: ShoppingCart },
+  { term: 'Farmácia', icon: Pill },
+]
 
 function loadRecent(): string[] {
   return readJSON(RECENT_KEY, [] as string[])
@@ -87,9 +94,9 @@ export default function SearchPage() {
 
       {query.trim() ? (
         loading ? (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="space-y-2.5">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-44 animate-pulse rounded-2xl bg-neutral-200" />
+              <div key={i} className="h-20 animate-pulse rounded-2xl bg-neutral-200" />
             ))}
           </div>
         ) : results.length === 0 ? (
@@ -97,9 +104,9 @@ export default function SearchPage() {
             Nenhum resultado para &ldquo;{query}&rdquo;.
           </p>
         ) : (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="space-y-2.5">
             {results.map((s) => (
-              <StoreCard key={s.id} store={s} />
+              <StoreRow key={s.id} store={s} />
             ))}
           </div>
         )
@@ -113,9 +120,12 @@ export default function SearchPage() {
                   Limpar tudo
                 </button>
               </div>
-              <div className="divide-y divide-neutral-100 rounded-2xl border border-neutral-200 bg-white">
+              <div className="space-y-2">
                 {recent.map((term) => (
-                  <div key={term} className="flex items-center justify-between px-4 py-3">
+                  <div
+                    key={term}
+                    className="flex items-center justify-between rounded-2xl border border-neutral-200 bg-white px-4 py-3 shadow-sm"
+                  >
                     <button
                       onClick={() => commitSearch(term)}
                       className="flex items-center gap-2 text-sm text-neutral-700"
@@ -139,12 +149,13 @@ export default function SearchPage() {
           <section>
             <h2 className="mb-2 text-sm font-bold text-neutral-900">Populares agora</h2>
             <div className="flex flex-wrap gap-2">
-              {POPULAR.map((term) => (
+              {POPULAR.map(({ term, icon: Icon }) => (
                 <button
                   key={term}
                   onClick={() => commitSearch(term)}
-                  className="rounded-full border border-neutral-200 bg-white px-3.5 py-1.5 text-sm font-medium text-neutral-700"
+                  className="flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-3.5 py-1.5 text-sm font-medium text-neutral-700"
                 >
+                  <Icon className="h-3.5 w-3.5 text-accent" strokeWidth={1.75} />
                   {term}
                 </button>
               ))}

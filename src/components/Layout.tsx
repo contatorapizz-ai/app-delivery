@@ -1,116 +1,47 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { Heart, Home, Megaphone, Package, PlayCircle, Search, ShoppingCart } from 'lucide-react'
-import { useCart } from '../context/CartContext'
-import Logo from './Logo'
+import { Heart, Home, Package, PlayCircle, Search } from 'lucide-react'
 import LocationBar from './LocationBar'
 import CartBar from './CartBar'
-import { AccountNavItemDesktop, AccountNavItemMobile } from './AccountNavItem'
+import { AccountNavItemMobile } from './AccountNavItem'
 
-const mobileNavLinkClass = ({ isActive }: { isActive: boolean }) =>
-  `flex flex-col items-center gap-0.5 px-2 py-1.5 text-[11px] font-medium ${
-    isActive ? 'text-brand' : 'text-neutral-500'
+const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+  `flex flex-col items-center gap-0.5 px-3 py-1.5 text-[11px] font-medium ${
+    isActive ? 'text-navy' : 'text-neutral-500'
   }`
-
-const desktopNavLinkClass = ({ isActive }: { isActive: boolean }) =>
-  `rounded-full px-4 py-2 text-sm font-semibold transition ${
-    isActive ? 'bg-brand-light text-brand' : 'text-neutral-600 hover:bg-neutral-100'
-  }`
-
-function CartBadge() {
-  const { itemsCount } = useCart()
-  if (itemsCount === 0) return null
-  return (
-    <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-bold text-white">
-      {itemsCount}
-    </span>
-  )
-}
 
 export default function Layout() {
   return (
     <div className="flex min-h-screen flex-col bg-neutral-50">
       <LocationBar />
 
-      <header className="sticky top-0 z-30 border-b border-neutral-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 lg:px-8">
-          <NavLink to="/">
-            <Logo />
-          </NavLink>
-
-          <nav className="hidden items-center gap-1 lg:flex">
-            <NavLink to="/" end className={desktopNavLinkClass}>
-              Início
-            </NavLink>
-            <NavLink to="/shop" className={desktopNavLinkClass}>
-              Rapizz Shop
-            </NavLink>
-            <NavLink to="/busca" className={desktopNavLinkClass}>
-              Buscar
-            </NavLink>
-            <NavLink to="/pedidos" className={desktopNavLinkClass}>
-              Meus pedidos
-            </NavLink>
-            <NavLink to="/favoritos" className={desktopNavLinkClass}>
-              Favoritos
-            </NavLink>
-            <NavLink to="/carrinho" className={desktopNavLinkClass}>
-              <span className="relative flex items-center gap-1.5">
-                <ShoppingCart className="h-4 w-4" /> Carrinho
-                <CartBadge />
-              </span>
-            </NavLink>
-            <NavLink
-              to="/anunciar"
-              className={({ isActive }) =>
-                `ml-2 flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                  isActive ? 'border-brand bg-brand text-white' : 'border-neutral-300 text-neutral-600 hover:border-brand hover:text-brand'
-                }`
-              }
-            >
-              <Megaphone className="h-4 w-4" /> Anunciar
-            </NavLink>
-            <div className="ml-2 border-l border-neutral-200 pl-2">
-              <AccountNavItemDesktop />
-            </div>
-          </nav>
-
-          <NavLink
-            to="/anunciar"
-            className="flex items-center gap-1.5 rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold text-neutral-600 lg:hidden"
-          >
-            <Megaphone className="h-3.5 w-3.5" /> Anunciar
-          </NavLink>
-        </div>
-      </header>
-
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-28 pt-5 lg:px-8 lg:pb-10">
+      <main className="w-full flex-1 px-4 pb-28 pt-5 lg:px-6">
         <Outlet />
       </main>
 
       <CartBar />
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <div className="mx-auto flex max-w-3xl items-center justify-around">
-          <NavLink to="/" end className={mobileNavLinkClass}>
+          <NavLink to="/" end className={navLinkClass}>
             <Home className="h-5 w-5" strokeWidth={1.75} />
             Início
           </NavLink>
-          <NavLink to="/shop" className={mobileNavLinkClass}>
+          <NavLink to="/shop" className={navLinkClass}>
             <PlayCircle className="h-5 w-5" strokeWidth={1.75} />
             Rapizz Shop
           </NavLink>
-          <NavLink to="/busca" className={mobileNavLinkClass}>
+          <NavLink to="/busca" className={navLinkClass}>
             <Search className="h-5 w-5" strokeWidth={1.75} />
             Busca
           </NavLink>
-          <NavLink to="/pedidos" className={mobileNavLinkClass}>
+          <NavLink to="/pedidos" className={navLinkClass}>
             <Package className="h-5 w-5" strokeWidth={1.75} />
             Pedidos
           </NavLink>
-          <NavLink to="/favoritos" className={mobileNavLinkClass}>
+          <NavLink to="/favoritos" className={navLinkClass}>
             <Heart className="h-5 w-5" strokeWidth={1.75} />
             Favoritos
           </NavLink>

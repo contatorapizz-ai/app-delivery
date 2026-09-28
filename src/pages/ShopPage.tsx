@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Heart, MessageCircle, Send, Share2, Sparkles, Star, X } from 'lucide-react'
+import { Heart, MessageCircle, PlayCircle, Send, Share2, ShoppingBag, Sparkles, Star, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { useCart } from '../context/CartContext'
 import MediaTile from '../components/MediaTile'
 import { trackAdEvent } from '../data/ads.api'
 import {
@@ -13,8 +14,33 @@ import {
   type ShopEngagement,
   type ShowcaseItem,
 } from '../data/shop.api'
-import { formatBRL } from '../lib/format'
+import { formatBRL, formatCompactNumber } from '../lib/format'
 import type { ShopCommentRow } from '../types/database'
+
+type ShopTab = 'para_voce' | 'ofertas' | 'ao_vivo'
+
+const TABS: { id: ShopTab; label: string }[] = [
+  { id: 'para_voce', label: 'Para você' },
+  { id: 'ofertas', label: 'Ofertas' },
+  { id: 'ao_vivo', label: 'Ao Vivo' },
+]
+
+function useCountdown(target: Date) {
+  const [msLeft, setMsLeft] = useState(() => target.getTime() - Date.now())
+  useEffect(() => {
+    const timer = setInterval(() => setMsLeft(target.getTime() - Date.now()), 1000)
+    return () => clearInterval(timer)
+  }, [target])
+  if (msLeft <= 0) return null
+  const totalSeconds = Math.floor(msLeft / 1000)
+  const days = Math.floor(totalSeconds / 86400)
+  const hours = Math.floor((totalSeconds % 86400) / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+  const pad = (n: number) => String(n).padStart(2, '0')
+  if (days > 0) return `${days}d ${pad(hours)}:${pad(minutes)}`
+  return `${pad(hours === 0 ? minutes : hours)}:${pad(hours === 0 ? seconds : minutes)}`
+}
 
 function ShareButton({ item }: { item: ShowcaseItem }) {
   async function handleShare() {
@@ -125,20 +151,45 @@ function CommentsSheet({ campaignId, onClose }: { campaignId: string; onClose: (
   )
 }
 
+function OfferStrip({ item }: { item: ShowcaseItem }) {
+  const countdown = useCountdown(new Date(`${item.campaign.ends_at}T23:59:59`))
+  if (!item.product || !countdown) return null
+
+  return (
+    <Link
+      to={`/loja/${item.store.id}`}
+      onClick={() => trackAdEvent(item.campaign.id, 'clique')}
+      className="flex items-center justify-between gap-3 bg-gradient-to-r from-brand to-brand-dark px-4 py-2.5 text-white"
+    >
+      <div className="min-w-0">
+        <p className="text-[10px] font-bold uppercase tracking-wide text-white/80">Oferta do vídeo</p>
+        <p className="truncate text-sm font-bold">{item.product.name}</p>
+        <p className="text-sm font-extrabold">{formatBRL(item.product.price)}</p>
+      </div>
+      <div className="flex shrink-0 flex-col items-end gap-1">
+        <span className="text-xs font-mono font-bold tabular-nums">{countdown}</span>
+        <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-brand">Comprar</span>
+      </div>
+    </Link>
+  )
+}
+
 function ShopCard({
   item,
   engagement,
   onToggleLike,
+  onBuy,
 }: {
   item: ShowcaseItem
   engagement: ShopEngagement
   onToggleLike: () => void
+  onBuy: () => void
 }) {
   const [showComments, setShowComments] = useState(false)
   const { campaign, product, store } = item
 
   return (
-    <div className="relative aspect-[9/16] w-full max-h-[75vh] overflow-hidden rounded-3xl bg-black">
+    <div className="relative w-full overflow-hidden rounded-3xl bg-black" style={{ aspectRatio: '9 / 16', maxHeight: '78vh' }}>
       {campaign.video_url ? (
         <video
           src={campaign.video_url}
@@ -158,7 +209,13 @@ function ShopCard({
         />
       )}
 
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-4 pt-16 text-white">
+      <div className="absolute inset-x-0 top-0 bg-gradient-to-b from-black/60 to-transparent p-4">
+        <p className="flex items-center gap-1.5 text-sm font-extrabold text-white">
+          <PlayCircle className="h-4 w-4" /> Rapizz Shop
+        </p>
+      </div>
+
+      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-4 pb-0 pt-16 text-white">
         <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-white/70">
           {store.name} · <Star className="h-3 w-3 fill-accent text-accent" /> {store.rating.toFixed(1)}
         </p>
@@ -166,16 +223,42 @@ function ShopCard({
         {(product?.description || campaign.description) && (
           <p className="mt-1 line-clamp-2 text-sm text-white/85">{product?.description || campaign.description}</p>
         )}
-        <div className="mt-3 flex items-center justify-between gap-3">
-          {product && <span className="text-lg font-extrabold">{formatBRL(product.price)}</span>}
-          <Link
-            to={`/loja/${store.id}`}
-            onClick={() => trackAdEvent(campaign.id, 'clique')}
-            className="rounded-full bg-brand px-5 py-2 text-sm font-bold"
-          >
-            Ver na loja
-          </Link>
-        </div>
+
+        <OfferStrip item={item} />
+
+        {product && (
+          <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl bg-black/70 p-2.5 backdrop-blur">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <MediaTile
+                src={product.imageUrl}
+                alt={product.name}
+                icon={<Sparkles className="h-4 w-4 text-accent" />}
+                className="h-11 w-11 shrink-0 rounded-xl"
+              />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold">{product.name}</p>
+                <p className="text-sm font-extrabold text-accent">{formatBRL(product.price)}</p>
+              </div>
+            </div>
+            <button
+              onClick={onBuy}
+              className="shrink-0 rounded-full bg-accent px-5 py-2 text-sm font-bold text-white"
+            >
+              Comprar
+            </button>
+          </div>
+        )}
+        {!product && (
+          <div className="mt-3 pb-1">
+            <Link
+              to={`/loja/${store.id}`}
+              onClick={() => trackAdEvent(campaign.id, 'clique')}
+              className="inline-block rounded-full bg-accent px-5 py-2 text-sm font-bold text-white"
+            >
+              Ver na loja
+            </Link>
+          </div>
+        )}
       </div>
 
       <div className="absolute right-3 top-1/2 flex -translate-y-1/2 flex-col items-center gap-4">
@@ -183,13 +266,13 @@ function ShopCard({
           <span className="grid h-11 w-11 place-items-center rounded-full bg-black/30 backdrop-blur">
             <Heart className={`h-5 w-5 ${engagement.likedByMe ? 'fill-brand text-brand' : ''}`} />
           </span>
-          <span className="text-[11px] font-semibold">{engagement.likeCount}</span>
+          <span className="text-[11px] font-semibold">{formatCompactNumber(engagement.likeCount)}</span>
         </button>
         <button onClick={() => setShowComments(true)} className="flex flex-col items-center gap-0.5 text-white">
           <span className="grid h-11 w-11 place-items-center rounded-full bg-black/30 backdrop-blur">
             <MessageCircle className="h-5 w-5" />
           </span>
-          <span className="text-[11px] font-semibold">{engagement.commentCount}</span>
+          <span className="text-[11px] font-semibold">{formatCompactNumber(engagement.commentCount)}</span>
         </button>
         <ShareButton item={item} />
       </div>
@@ -202,6 +285,8 @@ function ShopCard({
 export default function ShopPage() {
   const { session } = useAuth()
   const navigate = useNavigate()
+  const { storeId: cartStoreId, clearCart, addItem } = useCart()
+  const [tab, setTab] = useState<ShopTab>('para_voce')
   const [items, setItems] = useState<ShowcaseItem[] | null>(null)
   const [engagement, setEngagement] = useState<Record<string, ShopEngagement>>({})
   const [error, setError] = useState(false)
@@ -244,31 +329,70 @@ export default function ShopPage() {
     }
   }
 
+  function handleBuy(item: ShowcaseItem) {
+    if (!item.product) return
+    if (cartStoreId && cartStoreId !== item.store.id) {
+      if (!window.confirm('Seu carrinho tem itens de outra loja. Esvaziar e adicionar este produto?')) return
+      clearCart()
+    }
+    addItem({ product: item.product, quantity: 1, selectedOptions: [] })
+    trackAdEvent(item.campaign.id, 'clique')
+    navigate('/carrinho')
+  }
+
+  const visibleItems = items?.filter((item) => {
+    if (tab === 'ofertas') return item.product !== null
+    if (tab === 'ao_vivo') return false
+    return true
+  })
+
   return (
     <div className="mx-auto max-w-md space-y-4">
-      <div>
-        <h1 className="text-xl font-extrabold text-neutral-900">Rapizz Shop</h1>
-        <p className="text-sm text-neutral-500">Produtos e lojas em destaque. Curta, comente e compartilhe.</p>
+      <div className="flex items-center gap-2 overflow-x-auto">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition ${
+              tab === t.id ? 'bg-navy text-white' : 'bg-neutral-100 text-neutral-600'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
       {error && <p className="text-sm text-red-600">Não foi possível carregar a vitrine agora.</p>}
 
       {items === null && !error && <div className="aspect-[9/16] max-h-[75vh] animate-pulse rounded-3xl bg-neutral-200" />}
 
-      {items && items.length === 0 && (
+      {tab === 'ao_vivo' && (
+        <div className="flex flex-col items-center gap-2 rounded-3xl border border-dashed border-neutral-300 py-16 text-center">
+          <ShoppingBag className="h-8 w-8 text-neutral-300" />
+          <p className="max-w-xs text-sm text-neutral-500">
+            Nenhuma transmissão ao vivo agora. O Rapizz ainda não tem infraestrutura de streaming ao vivo contratada
+            — por isso não exibimos vídeos gravados como se fossem uma live.
+          </p>
+        </div>
+      )}
+
+      {tab !== 'ao_vivo' && visibleItems && visibleItems.length === 0 && (
         <p className="rounded-xl border border-dashed border-neutral-300 py-16 text-center text-sm text-neutral-500">
-          Nenhum destaque ativo no momento. Lojistas podem criar uma campanha em Rapizz Ads.
+          {tab === 'ofertas'
+            ? 'Nenhuma oferta com produto vinculado no momento.'
+            : 'Nenhum destaque ativo no momento. Lojistas podem criar uma campanha em Rapizz Ads.'}
         </p>
       )}
 
-      {items && items.length > 0 && (
+      {tab !== 'ao_vivo' && visibleItems && visibleItems.length > 0 && (
         <div className="space-y-4">
-          {items.map((item) => (
+          {visibleItems.map((item) => (
             <ShopCard
               key={item.campaign.id}
               item={item}
               engagement={engagement[item.campaign.id] ?? { likeCount: 0, commentCount: 0, likedByMe: false }}
               onToggleLike={() => handleToggleLike(item.campaign.id)}
+              onBuy={() => handleBuy(item)}
             />
           ))}
         </div>

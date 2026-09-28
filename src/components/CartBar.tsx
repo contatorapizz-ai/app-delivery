@@ -11,7 +11,7 @@ export default function CartBar() {
 
   return (
     <div
-      className="fixed inset-x-0 z-20 px-4 lg:hidden"
+      className="fixed inset-x-0 z-20 px-4"
       style={{ bottom: 'calc(env(safe-area-inset-bottom) + 4.5rem)' }}
     >
       <Link
