@@ -1,6 +1,9 @@
-import { useState } from 'react'
-import { MailCheck } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Bike, MailCheck, User } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
+
+type SignupRole = 'cliente' | 'motoboy'
 
 export default function AuthForm({
   title = 'Entrar no Rapizz',
@@ -11,14 +14,22 @@ export default function AuthForm({
   subtitleLogin?: string
   subtitleSignup?: string
 }) {
-  const { signIn, signUp } = useAuth()
+  const { session, signIn, signUp } = useAuth()
+  const navigate = useNavigate()
   const [mode, setMode] = useState<'login' | 'signup'>('login')
+  const [signupRole, setSignupRole] = useState<SignupRole>('cliente')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [signupDone, setSignupDone] = useState(false)
+
+  useEffect(() => {
+    if (signupDone && session && signupRole === 'motoboy') {
+      navigate('/entregador')
+    }
+  }, [signupDone, session, signupRole, navigate])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -42,6 +53,12 @@ export default function AuthForm({
           Se o seu cadastro pedir confirmação, enviamos um link para <strong>{email}</strong>. Depois de confirmar
           (ou já, se a confirmação estiver desativada), volte aqui e entre normalmente.
         </p>
+        {signupRole === 'motoboy' && (
+          <p className="rounded-lg bg-neutral-50 p-3 text-xs text-neutral-500">
+            Depois de entrar, vá em <strong>Perfil → Seja um entregador</strong> pra completar seu cadastro de
+            motoboy (dados do veículo). Ele passa por aprovação da administração antes de ficar disponível.
+          </p>
+        )}
       </div>
     )
   }
@@ -52,6 +69,40 @@ export default function AuthForm({
         <h1 className="text-xl font-extrabold text-neutral-900">{title}</h1>
         <p className="mt-1 text-sm text-neutral-500">{mode === 'login' ? subtitleLogin : subtitleSignup}</p>
       </div>
+
+      {mode === 'signup' && (
+        <div>
+          <p className="mb-1.5 text-xs font-semibold text-neutral-600">O que você é?</p>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setSignupRole('cliente')}
+              className={`flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${
+                signupRole === 'cliente' ? 'border-navy bg-navy text-white' : 'border-neutral-200 text-neutral-600'
+              }`}
+            >
+              <User className="h-4 w-4" /> Cliente
+            </button>
+            <button
+              type="button"
+              onClick={() => setSignupRole('motoboy')}
+              className={`flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${
+                signupRole === 'motoboy' ? 'border-navy bg-navy text-white' : 'border-neutral-200 text-neutral-600'
+              }`}
+            >
+              <Bike className="h-4 w-4" /> Entregador
+            </button>
+          </div>
+          <p className="mt-1.5 text-[11px] text-neutral-400">
+            Quer vender no Rapizz? Cadastro de loja é feito pelo{' '}
+            <Link to="/suporte" className="font-semibold text-brand underline">
+              suporte
+            </Link>
+            , não por aqui.
+          </p>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-3">
         {mode === 'signup' && (
           <input

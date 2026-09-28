@@ -1,15 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Minus, Plus, ShoppingCart } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
-import { useOrders } from '../context/OrdersContext'
+import AuthForm from '../components/auth/AuthForm'
 import { createOrder, fetchStoreById } from '../data/api'
 import { formatBRL } from '../lib/format'
 import type { Order, Store } from '../types/domain'
 
 export default function CartPage() {
+  const { session, profile } = useAuth()
   const { items, storeId, updateQuantity, removeItem, itemsTotal, clearCart } = useCart()
-  const { addOrder } = useOrders()
   const navigate = useNavigate()
 
   const [store, setStore] = useState<Store | undefined>(undefined)
@@ -18,6 +19,12 @@ export default function CartPage() {
   const [address, setAddress] = useState('')
   const [notes, setNotes] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (profile?.full_name && !customerName) setCustomerName(profile.full_name)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile])
 
   useEffect(() => {
     if (!storeId) {
@@ -38,8 +45,14 @@ export default function CartPage() {
   const belowMinimum = store ? itemsTotal < store.minOrder : false
 
   const canSubmit = useMemo(
-    () => items.length > 0 && !belowMinimum && customerName.trim().length > 1 && customerPhone.trim().length >= 8 && address.trim().length > 5,
-    [items.length, belowMinimum, customerName, customerPhone, address],
+    () =>
+      Boolean(session) &&
+      items.length > 0 &&
+      !belowMinimum &&
+      customerName.trim().length > 1 &&
+      customerPhone.trim().length >= 8 &&
+      address.trim().length > 5,
+    [session, items.length, belowMinimum, customerName, customerPhone, address],
   )
 
   function buildWhatsAppMessage(order: Order): string {
@@ -68,11 +81,13 @@ export default function CartPage() {
   async function handleFinalize() {
     if (!store || !canSubmit || submitting) return
     setSubmitting(true)
+    setSubmitError(null)
 
     const trimmedNotes = notes.trim() || undefined
 
+    let created: Order
     try {
-      await createOrder({
+      created = await createOrder({
         storeId: store.id,
         items,
         subtotal: itemsTotal,
@@ -83,29 +98,19 @@ export default function CartPage() {
         address: address.trim(),
         notes: trimmedNotes,
       })
-    } catch {
-      // segue o fluxo mesmo se a gravação remota falhar — o pedido não pode travar por isso
+    } catch (err) {
+      setSubmitError(
+        err instanceof Error
+          ? `Não foi possível registrar seu pedido: ${err.message}`
+          : 'Não foi possível registrar seu pedido agora. Tente novamente.',
+      )
+      setSubmitting(false)
+      return
     }
 
-    const order: Order = {
-      id: `${Date.now()}`,
-      storeId: store.id,
-      storeName: store.name,
-      items,
-      total,
-      deliveryFee,
-      status: 'recebido',
-      createdAt: new Date().toISOString(),
-      customerName: customerName.trim(),
-      customerPhone: customerPhone.trim(),
-      address: address.trim(),
-      notes: trimmedNotes,
-    }
-
-    addOrder(order)
     clearCart()
 
-    const message = buildWhatsAppMessage(order)
+    const message = buildWhatsAppMessage({ ...created, storeName: store.name })
     const url = `https://wa.me/${store.whatsapp}?text=${encodeURIComponent(message)}`
     window.open(url, '_blank', 'noopener,noreferrer')
 
@@ -181,7 +186,17 @@ export default function CartPage() {
             </p>
           )}
 
-          <section className="space-y-3 rounded-xl border border-neutral-200 bg-white p-3">
+          {!session && (
+            <AuthForm
+              title="Entre pra finalizar"
+              subtitleLogin="Seu pedido precisa de uma conta pra loja receber, e você acompanhar o status em tempo real."
+              subtitleSignup="Crie sua conta pra finalizar o pedido."
+            />
+          )}
+
+          <section
+            className={`space-y-3 rounded-xl border border-neutral-200 bg-white p-3 ${!session ? 'pointer-events-none opacity-50' : ''}`}
+          >
             <h2 className="text-sm font-bold text-neutral-900">Dados para entrega</h2>
             <div>
               <label htmlFor="name" className="mb-1 block text-xs font-medium text-neutral-600">
@@ -257,15 +272,18 @@ export default function CartPage() {
             </div>
           </div>
 
+          {submitError && <p className="text-center text-xs text-red-600">{submitError}</p>}
+
           <button
             onClick={handleFinalize}
             disabled={!canSubmit || submitting}
             className="w-full rounded-full bg-brand py-3.5 text-sm font-bold text-white disabled:opacity-40"
           >
-            {submitting ? 'Enviando...' : 'Finalizar pedido pelo WhatsApp'}
+            {submitting ? 'Enviando...' : !session ? 'Entre pra finalizar' : 'Finalizar pedido'}
           </button>
           <p className="text-center text-xs text-neutral-400">
-            Você será direcionado ao WhatsApp da loja para confirmar o pagamento e a entrega.
+            Seu pedido é registrado no Rapizz e a loja recebe direto — você também é levado ao WhatsApp da loja pra
+            confirmar o pagamento e a entrega.
           </p>
         </aside>
       </div>

@@ -93,10 +93,10 @@ export default function AccountPage() {
       )}
 
       <div className="space-y-2.5">
-        {session && (role === 'lojista' || role === 'admin') && (
+        {session && role === 'lojista' && (
           <MenuLink to="/lojista" icon={<ClipboardList className="h-4 w-4" />} label="Pedidos da loja" tone="navy" />
         )}
-        {session && (role === 'lojista' || role === 'admin') && (
+        {session && role === 'lojista' && (
           <MenuLink
             to="/anunciar"
             icon={<Megaphone className="h-4 w-4" />}
@@ -104,7 +104,7 @@ export default function AccountPage() {
             tone="accent"
           />
         )}
-        {session && (role === 'motoboy' || role === 'admin') && (
+        {session && role === 'motoboy' && (
           <MenuLink to="/entregador" icon={<Bike className="h-4 w-4" />} label="Minhas entregas" tone="navy" />
         )}
         {session && role === 'admin' && (
