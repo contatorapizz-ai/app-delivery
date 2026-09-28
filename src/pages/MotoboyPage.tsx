@@ -19,6 +19,7 @@ import {
   reportDeliveryIssue,
   type AvailableDelivery,
 } from '../data/deliveries.api'
+import { errorMessage } from '../lib/errors'
 import { formatBRL } from '../lib/format'
 import { supabase } from '../lib/supabase'
 import type { DeliveryRow, MotoboyProfileRow } from '../types/database'
@@ -37,7 +38,7 @@ function RegisterForm({ profileId, onRegistered }: { profileId: string; onRegist
       await registerMotoboy(profileId, vehicleType, plate)
       onRegistered()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Não foi possível enviar o cadastro.')
+      setError(errorMessage(err, 'Não foi possível enviar o cadastro.'))
     } finally {
       setLoading(false)
     }
@@ -90,7 +91,7 @@ function ActiveDeliveryCard({ delivery, onChanged }: { delivery: DeliveryRow; on
       await action()
       onChanged()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Não foi possível concluir a ação.')
+      setError(errorMessage(err, 'Não foi possível concluir a ação.'))
     } finally {
       setBusy(false)
     }
@@ -237,7 +238,7 @@ export default function MotoboyPage() {
       await acceptDelivery(deliveryId)
       loadAll(session.user.id)
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Não foi possível aceitar.')
+      alert(errorMessage(err, 'Não foi possível aceitar.'))
       loadAll(session.user.id)
     }
   }
