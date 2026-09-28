@@ -7,6 +7,7 @@ import OrdersPage from './pages/OrdersPage'
 import LojistaPage from './pages/LojistaPage'
 import LojistaOrdersPage from './pages/LojistaOrdersPage'
 import MotoboyPage from './pages/MotoboyPage'
+import StoreApplicationPage from './pages/StoreApplicationPage'
 import AdminPage from './pages/AdminPage'
 import AdminStoreDetailPage from './pages/AdminStoreDetailPage'
 import AccountPage from './pages/AccountPage'
@@ -45,6 +46,7 @@ export default function App() {
                   <Route path="anunciar" element={<LojistaPage />} />
                   <Route path="lojista" element={<LojistaOrdersPage />} />
                   <Route path="entregador" element={<MotoboyPage />} />
+                  <Route path="vender" element={<StoreApplicationPage />} />
                   <Route path="admin" element={<AdminPage />} />
                   <Route path="admin/lojas/:storeId" element={<AdminStoreDetailPage />} />
                   <Route path="conta" element={<AccountPage />} />

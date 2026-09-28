@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { Bike, ChevronRight, ClipboardList, HelpCircle, Heart, LogOut, Megaphone, Package, Settings, User, Wrench } from 'lucide-react'
+import { Bike, ChevronRight, ClipboardList, HelpCircle, Heart, LogOut, Megaphone, Package, Settings, Store, User, Wrench } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import AuthForm from '../components/auth/AuthForm'
 
@@ -113,6 +113,9 @@ export default function AccountPage() {
         <MenuLink to="/pedidos" icon={<Package className="h-4 w-4" />} label="Meus Pedidos" tone="accent" />
         {session && role === 'cliente' && (
           <MenuLink to="/entregador" icon={<Bike className="h-4 w-4" />} label="Seja um entregador" tone="navy" />
+        )}
+        {session && role === 'cliente' && (
+          <MenuLink to="/vender" icon={<Store className="h-4 w-4" />} label="Cadastrar minha loja" tone="accent" />
         )}
         <MenuLink to="/favoritos" icon={<Heart className="h-4 w-4" />} label="Favoritos" tone="brand" />
         <MenuLink to="/suporte" icon={<HelpCircle className="h-4 w-4" />} label="Suporte Rapizz" tone="navy" />

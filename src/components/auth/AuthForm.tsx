@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { Bike, MailCheck, User } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Bike, MailCheck, Store, User } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
-type SignupRole = 'cliente' | 'motoboy'
+type SignupRole = 'cliente' | 'motoboy' | 'lojista'
+
+const ROLE_DESTINATION: Record<Exclude<SignupRole, 'cliente'>, string> = {
+  motoboy: '/entregador',
+  lojista: '/vender',
+}
 
 export default function AuthForm({
   title = 'Entrar no Rapizz',
@@ -26,8 +31,8 @@ export default function AuthForm({
   const [signupDone, setSignupDone] = useState(false)
 
   useEffect(() => {
-    if (signupDone && session && signupRole === 'motoboy') {
-      navigate('/entregador')
+    if (signupDone && session && signupRole !== 'cliente') {
+      navigate(ROLE_DESTINATION[signupRole])
     }
   }, [signupDone, session, signupRole, navigate])
 
@@ -59,6 +64,12 @@ export default function AuthForm({
             motoboy (dados do veículo). Ele passa por aprovação da administração antes de ficar disponível.
           </p>
         )}
+        {signupRole === 'lojista' && (
+          <p className="rounded-lg bg-neutral-50 p-3 text-xs text-neutral-500">
+            Depois de entrar, vá em <strong>Perfil → Cadastrar minha loja</strong> pra enviar os dados da sua loja.
+            Ela passa por aprovação da administração antes de aparecer no Rapizz.
+          </p>
+        )}
       </div>
     )
   }
@@ -73,11 +84,11 @@ export default function AuthForm({
       {mode === 'signup' && (
         <div>
           <p className="mb-1.5 text-xs font-semibold text-neutral-600">O que você é?</p>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <button
               type="button"
               onClick={() => setSignupRole('cliente')}
-              className={`flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${
+              className={`flex flex-col items-center justify-center gap-1 rounded-xl border px-2 py-2.5 text-xs font-semibold transition ${
                 signupRole === 'cliente' ? 'border-navy bg-navy text-white' : 'border-neutral-200 text-neutral-600'
               }`}
             >
@@ -86,20 +97,22 @@ export default function AuthForm({
             <button
               type="button"
               onClick={() => setSignupRole('motoboy')}
-              className={`flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${
+              className={`flex flex-col items-center justify-center gap-1 rounded-xl border px-2 py-2.5 text-xs font-semibold transition ${
                 signupRole === 'motoboy' ? 'border-navy bg-navy text-white' : 'border-neutral-200 text-neutral-600'
               }`}
             >
               <Bike className="h-4 w-4" /> Entregador
             </button>
+            <button
+              type="button"
+              onClick={() => setSignupRole('lojista')}
+              className={`flex flex-col items-center justify-center gap-1 rounded-xl border px-2 py-2.5 text-xs font-semibold transition ${
+                signupRole === 'lojista' ? 'border-navy bg-navy text-white' : 'border-neutral-200 text-neutral-600'
+              }`}
+            >
+              <Store className="h-4 w-4" /> Lojista
+            </button>
           </div>
-          <p className="mt-1.5 text-[11px] text-neutral-400">
-            Quer vender no Rapizz? Cadastro de loja é feito pelo{' '}
-            <Link to="/suporte" className="font-semibold text-brand underline">
-              suporte
-            </Link>
-            , não por aqui.
-          </p>
         </div>
       )}
 

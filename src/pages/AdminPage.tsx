@@ -1,10 +1,16 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { Bike, Building2, ChevronRight, Lock, Megaphone, Plus, ShieldCheck, ShieldOff, Wallet } from 'lucide-react'
+import { Bike, Building2, ChevronRight, Lock, Megaphone, Plus, ShieldCheck, ShieldOff, Store, Wallet } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { fetchAdminClientOverview, fetchAdminTotals, type AdminClientOverviewRow, type AdminTotals } from '../data/ads.api'
 import { createLojista } from '../data/adminUsers.api'
 import { fetchAllMotoboys, setMotoboyStatus, type MotoboyWithProfile } from '../data/motoboy.api'
+import {
+  approveStoreApplication,
+  fetchPendingStoreApplications,
+  rejectStoreApplication,
+  type StoreApplicationWithOwner,
+} from '../data/storeApplications.api'
 import { categoryMeta } from '../data/categories'
 import { formatBRL } from '../lib/format'
 import type { StoreCategory } from '../types/domain'
@@ -180,6 +186,96 @@ function AddLojistaForm({ onCreated }: { onCreated: () => void }) {
   )
 }
 
+function StoreApplicationsSection() {
+  const [apps, setApps] = useState<StoreApplicationWithOwner[] | null>(null)
+  const [busyId, setBusyId] = useState<string | null>(null)
+
+  function load() {
+    fetchPendingStoreApplications()
+      .then(setApps)
+      .catch(() => setApps([]))
+  }
+
+  useEffect(() => {
+    load()
+  }, [])
+
+  async function handleApprove(storeId: string, ownerId: string) {
+    setBusyId(storeId)
+    try {
+      await approveStoreApplication(storeId, ownerId)
+      load()
+    } catch {
+      // erro silencioso — lista continua com o estado anterior
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  async function handleReject(storeId: string) {
+    setBusyId(storeId)
+    try {
+      await rejectStoreApplication(storeId)
+      load()
+    } catch {
+      // erro silencioso — lista continua com o estado anterior
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  if (apps !== null && apps.length === 0) return null
+
+  return (
+    <section className="space-y-3">
+      <h2 className="text-sm font-bold uppercase tracking-wide text-neutral-500">Solicitações de loja</h2>
+      {apps === null ? (
+        <div className="h-16 animate-pulse rounded-2xl bg-neutral-200" />
+      ) : (
+        <div className="space-y-2">
+          {apps.map((app) => {
+            const cat = categoryMeta(app.category as StoreCategory)
+            return (
+              <div key={app.id} className="rounded-2xl border border-neutral-200 bg-white p-3">
+                <div className="flex items-start gap-3">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent/15 text-accent">
+                    <Store className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-neutral-900">{app.name}</p>
+                    <p className="truncate text-xs text-neutral-500">
+                      {cat.label} · {app.address}
+                    </p>
+                    <p className="truncate text-xs text-neutral-400">
+                      Por {app.owner_name} {app.owner_email ? `· ${app.owner_email}` : ''} · WhatsApp {app.whatsapp}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-2.5 flex gap-2">
+                  <button
+                    onClick={() => handleApprove(app.id, app.owner_id)}
+                    disabled={busyId === app.id}
+                    className="flex flex-1 items-center justify-center gap-1 rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-bold text-emerald-700 disabled:opacity-50"
+                  >
+                    <ShieldCheck className="h-3.5 w-3.5" /> Aprovar
+                  </button>
+                  <button
+                    onClick={() => handleReject(app.id)}
+                    disabled={busyId === app.id}
+                    className="flex flex-1 items-center justify-center gap-1 rounded-full bg-red-100 px-3 py-1.5 text-xs font-bold text-red-700 disabled:opacity-50"
+                  >
+                    <ShieldOff className="h-3.5 w-3.5" /> Recusar
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </section>
+  )
+}
+
 function MotoboysSection() {
   const [motoboys, setMotoboys] = useState<MotoboyWithProfile[] | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
@@ -342,6 +438,8 @@ export default function AdminPage() {
           </div>
         )}
       </section>
+
+      <StoreApplicationsSection />
 
       <MotoboysSection />
 
