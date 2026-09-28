@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { useOrders } from '../context/OrdersContext'
 import { useCart } from '../context/CartContext'
 import { cancelOrder, fetchMyOrders, fetchProductsByStore, rateOrder } from '../data/api'
+import { fetchDeliveryCodesByOrder } from '../data/deliveries.api'
 import { formatBRL } from '../lib/format'
 import { ORDER_STATUS_COLOR, ORDER_STATUS_LABEL } from '../lib/orderLabels'
 import { supabase } from '../lib/supabase'
@@ -56,7 +57,7 @@ function RateForm({ order, onDone }: { order: Order; onDone: () => void }) {
   )
 }
 
-function OrderRow({ order, onChanged }: { order: Order; onChanged: () => void }) {
+function OrderRow({ order, onChanged, deliveryCode }: { order: Order; onChanged: () => void; deliveryCode?: string }) {
   const { storeId, clearCart, addItem } = useCart()
   const navigate = useNavigate()
   const [busy, setBusy] = useState(false)
@@ -133,6 +134,13 @@ function OrderRow({ order, onChanged }: { order: Order; onChanged: () => void })
       {order.statusNote && (order.status === 'recusado' || order.status === 'cancelado') && (
         <p className="mt-1 text-xs italic text-neutral-500">Motivo: {order.statusNote}</p>
       )}
+      {deliveryCode && (order.status === 'coletado' || order.status === 'em_entrega') && (
+        <div className="mt-2 rounded-lg bg-accent/10 px-3 py-2 text-center">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-accent">Código de entrega</p>
+          <p className="text-lg font-extrabold tracking-[0.3em] text-neutral-900">{deliveryCode}</p>
+          <p className="text-[11px] text-neutral-500">Mostre esse código pro entregador na hora de receber</p>
+        </div>
+      )}
       <div className="mt-2 flex justify-between border-t border-neutral-100 pt-2 text-sm font-semibold text-neutral-900">
         <span>Total</span>
         <span>{formatBRL(order.total)}</span>
@@ -178,11 +186,18 @@ export default function OrdersPage() {
   const { session } = useAuth()
   const { orders: localOrders } = useOrders()
   const [remoteOrders, setRemoteOrders] = useState<Order[] | null>(null)
+  const [deliveryCodes, setDeliveryCodes] = useState<Record<string, string>>({})
   const [error, setError] = useState(false)
 
   function load(customerId: string) {
     fetchMyOrders(customerId)
-      .then(setRemoteOrders)
+      .then((data) => {
+        setRemoteOrders(data)
+        const activeIds = data.filter((o) => o.status === 'coletado' || o.status === 'em_entrega').map((o) => o.id)
+        fetchDeliveryCodesByOrder(activeIds)
+          .then(setDeliveryCodes)
+          .catch(() => setDeliveryCodes({}))
+      })
       .catch(() => setError(true))
   }
 
@@ -259,7 +274,12 @@ export default function OrdersPage() {
       {orders && orders.length > 0 && (
         <div className="space-y-3">
           {orders.map((order) => (
-            <OrderRow key={order.id} order={order} onChanged={() => session && load(session.user.id)} />
+            <OrderRow
+              key={order.id}
+              order={order}
+              deliveryCode={deliveryCodes[order.id]}
+              onChanged={() => session && load(session.user.id)}
+            />
           ))}
         </div>
       )}

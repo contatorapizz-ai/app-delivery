@@ -45,6 +45,17 @@ export async function fetchMyDeliveryHistory(motoboyId: string): Promise<Deliver
   return (data ?? []) as DeliveryRow[]
 }
 
+export async function fetchDeliveryCodesByOrder(orderIds: string[]): Promise<Record<string, string>> {
+  if (orderIds.length === 0) return {}
+  const { data, error } = await supabase.from('deliveries').select('order_id, delivery_code').in('order_id', orderIds)
+  if (error) throw error
+  const result: Record<string, string> = {}
+  for (const row of (data ?? []) as { order_id: string; delivery_code: string }[]) {
+    result[row.order_id] = row.delivery_code
+  }
+  return result
+}
+
 export async function acceptDelivery(deliveryId: string): Promise<void> {
   const { error } = await supabase.rpc('accept_delivery', { p_delivery_id: deliveryId })
   if (error) throw error
