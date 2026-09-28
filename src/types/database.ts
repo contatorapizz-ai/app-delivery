@@ -137,6 +137,7 @@ export interface DeliveryRow {
   id: string
   order_id: string
   store_id: string
+  customer_id: string | null
   motoboy_id: string | null
   status: DeliveryStatus
   delivery_code: string
